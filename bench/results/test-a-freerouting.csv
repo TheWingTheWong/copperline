@@ -10,3 +10,18 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0011_PixyWirelessShield_Shield PIXY,freerouting,,ok,1,0,0,0,,12.595,10.828,20,0,163.403
 0012_kitspace_ir_sensor,freerouting,,ok,1,0,0,0,,16.673,27.584,21,0,229.942
 0013_crossover-schiit-stack_xover4schiit,freerouting,,ok,1,0,0,0,,16.169,7.985,21,0,171.606
+0014_hardware-designs_m-trigger,freerouting,,ok,1,0,0,0,,14.875,6.085,18,0,100.93
+0015_kitspace_tt_opt101_module_b1,freerouting,,ok,1,0,0,0,,29.523,10.534,25,0,63.171
+0016_breakout-boards_avr-isp-x2,freerouting,,ok,1,0,0,0,,25.333,10.659,24,0,43.29
+0017_Blink-Eras_AVR_ISP_Pogo,freerouting,,ok,1,0,0,0,,19.492,12.538,31,1,103.028
+0018_Hardware_Playground_hy_adapter,freerouting,,ok,1,0,0,0,,29.001,5.42,38,5,63.219
+0019_CubeSAT-Reaction-Wheel_Edison_Motor_Servo,freerouting,,ok,1,0,0,0,,19.749,8.311,33,1,118.489
+0020_Cherry-Mx-Bitboard_Cherry Mx Bitboard,freerouting,,ok,1,0,0,0,,21.588,5.581,16,0,72.313
+0021_RPi-PWM-Fan-interface_RPi PWM Fan interface,freerouting,,ok,0,0,1,0,shorting_items:1,14.784,5.496,44,0,69.775
+0022_OpenVNAVI_motor unit,freerouting,,ok,1,0,0,0,,26.743,7.905,37,0,60.123
+0023_hardware-designs_si7021-board,freerouting,,ok,1,0,0,0,,16.081,7.398,36,1,111.437
+0024_memsarray_mems_modules,freerouting,,timeout,0,,,0,,1800,,,,
+0025_kitspace_hum_temp_sensor,freerouting,,ok,1,0,0,0,,35.502,34.944,23,0,103.713
+0026_PCB_constant_current_ac_hv,freerouting,,ok,0,0,4,0,clearance:2;shorting_items:2,17.213,9.816,27,0,138.506
+0027_ID-FIX_scanConnect,freerouting,,ok,1,0,0,0,,15.691,22.17,18,0,50.801
+0028_hardware-designs_c-trigger,freerouting,,ok,1,0,0,0,,15.216,15.151,20,0,85.508

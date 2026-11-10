@@ -1,0 +1,40 @@
+board,router,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
+0101_DerKnopf_remote-control,copperline,,ok,1,0,0,0,,0.202,0.0,66,2,93.504
+0102_ponyser-pcb_Ponyser,copperline,,ok,1,0,0,0,,0.145,0.0,54,2,81.393
+0103_LizardBoard_lizard,copperline,,ok,1,0,0,0,,0.345,0.0,65,8,164.275
+0104_zx-sizif-512-wifi_sizif512-wifi,copperline,,ok,1,0,0,0,,0.811,0.0,71,11,194.695
+0105_filament_extruder_sensor,copperline,,ok,1,0,0,0,,4.325,0.0,85,6,335.482
+0107_fingerprint-with-esp32_quet van tay,copperline,,ok,0,1,0,0,,53.337,0.0,77,6,421.609
+0109_kitspace_CH330,copperline,,ok,1,0,0,0,,1.606,0.0,77,5,63.396
+0110_NodeMcu-v3-LiPoly-LiIon-Backpack_NodeMcuLiPolyBackpack,copperline,,ok,1,0,0,0,,2.705,0.0,76,2,111.327
+0111_yamsek.kicad_i2c_bridge_secondary,copperline,,ok,1,0,0,0,,1.269,0.0,78,6,122.874
+0112_kicad_bbb-melzi,copperline,,ok,1,0,0,0,,4.965,0.0,109,5,382.305
+0114_POV_POV,copperline,,ok,1,0,0,0,,1.995,0.0,73,2,266.982
+0115_4N35-TTL-Serial-Optoisolator_4N35-TTL-Serial-Optoisolator,copperline,,ok,1,0,0,0,,0.502,0.0,66,0,176.346
+0116_kitspace_power_supply,copperline,,ok,1,0,0,0,,4.774,0.0,93,0,257.972
+0117_Hardware-done-with-kicad_AVRlearn,copperline,,ok,1,0,0,0,,4.205,0.0,80,4,334.012
+0118_LimitSwitchesPlugin_LimitSwitchesPlugin,copperline,,ok,1,0,0,0,,2.595,0.0,127,7,685.984
+0120_hardware-designs_solar-harvester,copperline,,ok,1,0,0,0,,3.122,0.0,88,5,194.091
+0124_nixie-clock_ab18x5-breakout,copperline,,ok,1,0,0,0,,0.644,0.0,70,1,97.246
+0125_kicad-projects_ili9341-breakout,copperline,,ok,1,0,0,0,,0.361,0.0,88,1,231.072
+0126_mini-whip_mini-whip,copperline,,error: copperline exited 101,0,,,0,,,,,,
+0128_kitspace_4_switch_array,copperline,,ok,1,0,0,0,,0.336,0.0,93,0,271.133
+0129_pi_plant_MCP3002,copperline,,ok,1,0,0,0,,0.302,0.0,83,1,177.303
+0130_Starburst-One_alpha,copperline,,ok,1,0,0,0,,0.193,0.0,77,2,81.618
+0131_busblaster-to-swd_busblaster-to-swd,copperline,,ok,1,0,0,0,,1.329,0.0,139,10,208.301
+0132_TPS63001-Breakout_TPS63001 Breakout 25x25,copperline,,ok,1,0,0,0,,1.548,0.0,73,7,88.246
+0133_esp-leipa_esp-12,copperline,,ok,1,0,0,0,,3.571,0.0,143,16,306.654
+0136_navelino-leaf_navelino-leaf,copperline,,ok,1,0,0,0,,2.224,0.0,142,13,244.319
+0137_hardware-designs_soil-moisture-sensor,copperline,,ok,1,0,0,0,,1.286,0.0,98,10,285.299
+0139_HillhacksLantern_LEDLantern,copperline,,ok,1,0,0,0,,0.495,0.0,124,1,360.842
+0140_eBUS-Adapter_Groeger,copperline,,ok,1,0,0,0,,0.495,0.0,123,1,215.585
+0141_TPS63001-Breakout_TPS63001 Breakout,copperline,,ok,1,0,0,0,,0.375,0.0,96,6,90.481
+0143_kitspace_solenoid_driver,copperline,,ok,1,0,0,0,,0.688,0.0,136,0,316.465
+0145_BML-Badges_BML_01,copperline,,ok,1,0,0,0,,0.584,0.0,120,0,306.476
+0146_pulse_v1_pulse,copperline,,ok,1,0,0,0,,3.445,0.0,99,8,116.35
+0148_LED_port-status_LED_port-status-CA-CC-combo,copperline,,ok,0,0,10,0,clearance:10,0.225,0.0,89,8,64.49
+0149_smt-zvs-driver_IH10-sl,copperline,,ok,1,0,0,0,,1.069,0.0,64,5,125.69
+0150_ReST32_ReST SD-Module,copperline,,ok,1,0,0,0,,2.364,0.0,143,11,379.228
+0152_mechkeys_isp,copperline,,ok,1,0,0,0,,0.47,0.0,106,5,163.289
+0153_6N137-TTL-Serial-Optoisolator_6N137-TTL-Serial-Optoisolator,copperline,,ok,1,0,0,0,,0.853,0.0,146,5,233.652
+0154_Arduino-Theremin_arduino-theremin-v1,copperline,,ok,1,0,0,0,,1.388,0.0,167,5,558.972

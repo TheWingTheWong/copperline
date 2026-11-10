@@ -455,6 +455,8 @@ impl Board {
             .unwrap_or("?")
             .to_string();
         let tf = move |q: P| q.rot_kicad(angle) + pos;
+        // A footprint-level clearance applies to every pad without its own.
+        let fp_clearance = fp.child("clearance").and_then(|c| c.arg_num(0));
         for item in fp.args() {
             match item.name() {
                 Some("pad") => {
@@ -493,7 +495,7 @@ impl Board {
                         let pb = shapes.iter().fold(BBox::empty(), |acc, s| acc.union(&s.bbox()));
                         pb.max.x - pb.min.x > hb.max.x - hb.min.x + 1e-6 || pb.max.y - pb.min.y > hb.max.y - hb.min.y + 1e-6
                     });
-                    let clearance = item.child("clearance").and_then(|c| c.arg_num(0));
+                    let clearance = item.child("clearance").and_then(|c| c.arg_num(0)).or(fp_clearance);
                     self.pads.push(Pad {
                         footprint: reference.clone(),
                         number: item.arg_text(0).unwrap_or("").to_string(),

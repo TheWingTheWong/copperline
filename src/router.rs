@@ -40,10 +40,14 @@ pub struct Params {
     /// Extra cost factor for moves against a layer's preferred direction.
     pub dir_penalty: f32,
     pub turn_cost: f32,
+    /// Heuristic weight for A* (1.0 = optimal paths).
+    pub h_weight: f32,
     /// Cap on grid cells per layer (the pitch grows to stay under it).
     pub max_cells: usize,
     /// Record per-iteration snapshots (for animation).
     pub snapshots: bool,
+    /// Wall-clock budget for negotiation, in seconds; the router then legalises what it has.
+    pub time_budget_s: f64,
 }
 
 impl Default for Params {
@@ -57,8 +61,10 @@ impl Default for Params {
             hist_fac: 0.4,
             dir_penalty: 0.15,
             turn_cost: 0.4,
+            h_weight: 1.25,
             max_cells: 3_000_000,
             snapshots: false,
+            time_budget_s: 90.0,
         }
     }
 }
@@ -252,8 +258,8 @@ struct Route {
     paths: Vec<Vec<usize>>,
     /// Stubs used: (layer, pad anchor, access state); no anchor for in-pad nodes.
     stubs: Vec<(usize, Option<P>, usize)>,
-    stamped_t: Vec<u32>,
-    stamped_v: Vec<u32>,
+    /// Halo cells stamped per occupancy group: (track-centre grid, via-centre grid).
+    stamped: Vec<(Vec<u32>, Vec<u32>)>,
     connected: usize,
 }
 
@@ -326,8 +332,13 @@ pub struct Router<'a> {
     tmask: Vec<Vec<u32>>,
     /// Via masks per class: cells.
     vmask: Vec<Vec<u32>>,
-    occ_t: Vec<u16>,
-    occ_v: Vec<u16>,
+    /// Occupancy per group: how many other nets' halos cover a cell, sized for the
+    /// track (occ_t) or via (occ_v) of that group's class.
+    occ_t: Vec<Vec<u16>>,
+    occ_v: Vec<Vec<u16>>,
+    /// Occupancy group of each class, and each group's (conservative) class.
+    group_of: Vec<usize>,
+    groups: Vec<Class>,
     hist_t: Vec<f32>,
     hist_v: Vec<f32>,
     nets: Vec<Net>,
@@ -337,9 +348,6 @@ pub struct Router<'a> {
     parent: Vec<u32>,
     target: Vec<u32>,
     touched: Vec<u32>,
-    w_max: f64,
-    rv_max: f64,
-    cl_max: f64,
 }
 
 fn class_of(board: &Board, rules: &Rules, net: u32) -> Class {
@@ -378,9 +386,14 @@ impl<'a> Router<'a> {
         let nl = board.layers.len();
         let grid = Grid { o: obs_bb.min, g, nx, ny, nl };
         let n = grid.cells();
-        let w_max = classes.iter().map(|c| c.w).fold(0.0, f64::max);
-        let rv_max = classes.iter().map(|c| c.vd / 2.0).fold(0.0, f64::max);
-        let cl_max = classes.iter().map(|c| c.cl).fold(0.0, f64::max);
+        // One occupancy group per class while that stays small; otherwise a single
+        // conservative group (largest width, via, clearance and drill).
+        let (group_of, groups): (Vec<usize>, Vec<Class>) = if classes.len() * nl * n <= 24_000_000 {
+            ((0..classes.len()).collect(), classes.clone())
+        } else {
+            let f = |g: fn(&Class) -> f64| classes.iter().map(g).fold(0.0, f64::max);
+            (vec![0; classes.len()], vec![Class { w: f(|c| c.w), cl: f(|c| c.cl), vd: f(|c| c.vd), vdrill: f(|c| c.vdrill) }])
+        };
         let mut r = Router {
             board,
             rules,
@@ -389,8 +402,10 @@ impl<'a> Router<'a> {
             classes: classes.clone(),
             tmask: Vec::new(),
             vmask: Vec::new(),
-            occ_t: vec![0; nl * n],
-            occ_v: vec![0; nl * n],
+            occ_t: vec![vec![0; nl * n]; groups.len()],
+            occ_v: vec![vec![0; nl * n]; groups.len()],
+            group_of,
+            groups,
             hist_t: vec![0.0; nl * n],
             hist_v: vec![0.0; n],
             nets: Vec::new(),
@@ -399,11 +414,11 @@ impl<'a> Router<'a> {
             parent: vec![u32::MAX; nl * n],
             target: vec![0; nl * n],
             touched: Vec::new(),
-            w_max,
-            rv_max,
-            cl_max,
         };
+        let t0 = std::time::Instant::now();
         r.build_masks();
+        dbg_time("masks", t0);
+        let t0 = std::time::Instant::now();
         let obs = Obstacles::new(board, rules);
         let idx = StaticIndex::new(&obs, obs_bb.inflate(2.0));
         for (net, pads, ci) in net_class {
@@ -434,6 +449,7 @@ impl<'a> Router<'a> {
             r.nets.push(Net { id: net, pads, class: ci, access, hpwl });
         }
         r.routes = vec![Route::default(); r.nets.len()];
+        dbg_time("accesses", t0);
         r
     }
 
@@ -585,6 +601,18 @@ impl<'a> Router<'a> {
             }
             // Cells inside the pad first, then the closest to the pad edge.
             cand.sort_by(|a, b| b.0.cmp(&a.0).then(a.2.partial_cmp(&b.2).unwrap()).then(a.1.partial_cmp(&b.1).unwrap()));
+            // Big pads on fine grids have tens of thousands of interior cells; an even
+            // sample of 256 keeps the search small and the target encoding in range.
+            let n_in = cand.iter().filter(|c| c.0).count();
+            let stride = n_in.div_ceil(256).max(1);
+            let mut k_in = 0usize;
+            cand.retain(|c| {
+                if !c.0 {
+                    return true;
+                }
+                k_in += 1;
+                (k_in - 1) % stride == 0
+            });
             let mut taken = 0;
             for (inside, d, _, s, q) in cand {
                 if taken >= 24 {
@@ -674,14 +702,12 @@ impl<'a> Router<'a> {
         (segs, vias)
     }
 
-    fn halo_cells(&self, ni: usize) -> (Vec<u32>, Vec<u32>) {
-        let c = self.classes[self.nets[ni].class];
+    fn halo_cells(&self, ni: usize) -> Vec<(Vec<u32>, Vec<u32>)> {
+        let a = self.classes[self.nets[ni].class];
         let gr = &self.grid;
         let n = gr.cells();
         let m = self.margin();
         let (segs, vias) = self.geometry(ni);
-        let mut t = Vec::new();
-        let mut v = Vec::new();
         let push = |out: &mut Vec<u32>, l: usize, sh: &Shape, r: f64| {
             let Some((x0, x1, y0, y1)) = gr.range(&sh.bbox().inflate(r)) else { return };
             for y in y0..=y1 {
@@ -692,47 +718,55 @@ impl<'a> Router<'a> {
                 }
             }
         };
-        let rt = c.w / 2.0 + self.w_max / 2.0 + c.cl.max(self.cl_max) + m;
-        let rv = c.w / 2.0 + self.rv_max + c.cl.max(self.cl_max) + m;
-        for &(l, a, b) in &segs {
-            let sh = Shape::capsule(a, b, 0.0);
-            push(&mut t, l, &sh, rt);
-            push(&mut v, l, &sh, rv);
-        }
-        let h2h = c.vdrill / 2.0 + self.rv_max + self.rules.min_hole_to_hole + m;
-        for &q in &vias {
-            let sh = Shape::circle(q, 0.0);
-            for l in 0..gr.nl {
-                push(&mut t, l, &sh, c.vd / 2.0 + self.w_max / 2.0 + c.cl.max(self.cl_max) + m);
-                push(&mut v, l, &sh, (c.vd / 2.0 + self.rv_max + c.cl.max(self.cl_max) + m).max(h2h));
+        let h2h = self.rules.min_hole_to_hole;
+        let mut out = Vec::new();
+        for k in &self.groups {
+            let cl = a.cl.max(k.cl) + m;
+            let (mut t, mut v) = (Vec::new(), Vec::new());
+            for &(l, p0, p1) in &segs {
+                let sh = Shape::capsule(p0, p1, 0.0);
+                push(&mut t, l, &sh, a.w / 2.0 + k.w / 2.0 + cl);
+                push(&mut v, l, &sh, a.w / 2.0 + k.vd / 2.0 + cl);
             }
+            for &q in &vias {
+                let sh = Shape::circle(q, 0.0);
+                let rvv = (a.vd / 2.0 + k.vd / 2.0 + cl).max(a.vdrill / 2.0 + k.vdrill / 2.0 + h2h + m);
+                for l in 0..gr.nl {
+                    push(&mut t, l, &sh, a.vd / 2.0 + k.w / 2.0 + cl);
+                    push(&mut v, l, &sh, rvv);
+                }
+            }
+            t.sort_unstable();
+            t.dedup();
+            v.sort_unstable();
+            v.dedup();
+            out.push((t, v));
         }
-        t.sort_unstable();
-        t.dedup();
-        v.sort_unstable();
-        v.dedup();
-        (t, v)
+        out
     }
 
     fn stamp_route(&mut self, ni: usize) {
-        let (t, v) = self.halo_cells(ni);
-        for &c in &t {
-            self.occ_t[c as usize] += 1;
+        let halos = self.halo_cells(ni);
+        for (g, (t, v)) in halos.iter().enumerate() {
+            for &c in t {
+                self.occ_t[g][c as usize] += 1;
+            }
+            for &c in v {
+                self.occ_v[g][c as usize] += 1;
+            }
         }
-        for &c in &v {
-            self.occ_v[c as usize] += 1;
-        }
-        self.routes[ni].stamped_t = t;
-        self.routes[ni].stamped_v = v;
+        self.routes[ni].stamped = halos;
     }
 
     fn rip_up(&mut self, ni: usize) {
         let rt = std::mem::take(&mut self.routes[ni]);
-        for &c in &rt.stamped_t {
-            self.occ_t[c as usize] -= 1;
-        }
-        for &c in &rt.stamped_v {
-            self.occ_v[c as usize] -= 1;
+        for (g, (t, v)) in rt.stamped.iter().enumerate() {
+            for &c in t {
+                self.occ_t[g][c as usize] -= 1;
+            }
+            for &c in v {
+                self.occ_v[g][c as usize] -= 1;
+            }
         }
     }
 
@@ -764,12 +798,13 @@ impl<'a> Router<'a> {
             for k in 0..npads {
                 if in_tree[k] {
                     for (ai, a) in access[k].iter().enumerate() {
-                        sources.push((a.state, a.cost + self.stub_cong(a, pres, strict), Some((k, ai))));
+                        sources.push((a.state, a.cost + self.stub_cong(a, self.group_of[ci], pres, strict), Some((k, ai))));
                     }
                 }
             }
-            let mut tb = BBox::empty();
+            let mut tbs: Vec<BBox> = Vec::new();
             for &k in &remaining {
+                let mut tb = BBox::empty();
                 for (ai, a) in access[k].iter().enumerate() {
                     let t = &mut self.target[a.state];
                     if *t == 0 {
@@ -777,8 +812,19 @@ impl<'a> Router<'a> {
                     }
                     tb.add(self.grid.cell_center(a.state % self.grid.cells()));
                 }
+                tbs.push(tb);
             }
-            let found = self.astar(id, ci, &sources, tb, pres, strict, &access);
+            if tbs.len() > 48 {
+                let all = tbs.iter().fold(BBox::empty(), |a, b| a.union(b));
+                tbs = vec![all];
+            }
+            // Search a window around the connection first; most paths stay close to
+            // the straight line, and a congested board would otherwise be flooded.
+            let win = self.window(&sources, &tbs);
+            let mut found = self.astar(id, ci, &sources, &tbs, pres, strict, &access, win);
+            if found.is_none() && win != (0, self.grid.nx - 1, 0, self.grid.ny - 1) {
+                found = self.astar(id, ci, &sources, &tbs, pres, strict, &access, (0, self.grid.nx - 1, 0, self.grid.ny - 1));
+            }
             for &k in &remaining {
                 for a in &access[k] {
                     self.target[a.state] = 0;
@@ -808,10 +854,23 @@ impl<'a> Router<'a> {
         self.routes[ni] = route;
     }
 
-    fn stub_cong(&self, a: &Access, pres: f32, strict: bool) -> f32 {
+    /// Cell window around sources and targets, inflated by max(3 mm, 30% of its size).
+    fn window(&self, sources: &[(usize, f32, Option<(usize, usize)>)], tbs: &[BBox]) -> (usize, usize, usize, usize) {
+        let gr = &self.grid;
+        let n = gr.cells();
+        let mut bb = tbs.iter().fold(BBox::empty(), |a, b| a.union(b));
+        for &(s, _, _) in sources {
+            bb.add(gr.cell_center(s % n));
+        }
+        let span = (bb.max.x - bb.min.x).max(bb.max.y - bb.min.y);
+        let bb = bb.inflate((0.3 * span).max(3.0));
+        gr.range(&bb).unwrap_or((0, gr.nx - 1, 0, gr.ny - 1))
+    }
+
+    fn stub_cong(&self, a: &Access, g: usize, pres: f32, strict: bool) -> f32 {
         let mut worst = 0u16;
         for &c in &a.cells {
-            worst = worst.max(self.occ_t[c as usize]);
+            worst = worst.max(self.occ_t[g][c as usize]);
         }
         if strict && worst > 0 {
             return 1e6;
@@ -825,23 +884,35 @@ impl<'a> Router<'a> {
         net: u32,
         ci: usize,
         sources: &[(usize, f32, Option<(usize, usize)>)],
-        tb: BBox,
+        tbs: &[BBox],
         pres: f32,
         strict: bool,
         access: &[Vec<Access>],
+        win: (usize, usize, usize, usize),
     ) -> Option<(Vec<usize>, Option<(usize, usize)>, (usize, usize))> {
+        let (wx0, wx1, wy0, wy1) = (win.0 as i64, win.1 as i64, win.2 as i64, win.3 as i64);
         let gr = self.grid;
         let n = gr.cells();
         let nx = gr.nx as i64;
-        let ny = gr.ny as i64;
         let tmask = &self.tmask[ci];
         let vmask = &self.vmask[ci];
+        let occ_t = &self.occ_t[self.group_of[ci]];
+        let occ_v = &self.occ_v[self.group_of[ci]];
+        // Octile distance to the nearest target pad's access box, slightly inflated
+        // (weighted A*): bends and against-direction moves cost more than the heuristic
+        // assumes, and an unweighted search floods large boards.
+        let weight = self.prm.h_weight;
+        let inv_g = 1.0 / gr.g;
         let h = |s: usize| -> f32 {
             let q = gr.cell_center(s % n);
-            let dx = (tb.min.x - q.x).max(q.x - tb.max.x).max(0.0);
-            let dy = (tb.min.y - q.y).max(q.y - tb.max.y).max(0.0);
-            let (a, b) = (dx.max(dy), dx.min(dy));
-            ((a - b + b * std::f64::consts::SQRT_2) / gr.g) as f32
+            let mut best = f64::INFINITY;
+            for tb in tbs {
+                let dx = (tb.min.x - q.x).max(q.x - tb.max.x).max(0.0);
+                let dy = (tb.min.y - q.y).max(q.y - tb.max.y).max(0.0);
+                let (a, b) = (dx.max(dy), dx.min(dy));
+                best = best.min(a - b + b * std::f64::consts::SQRT_2);
+            }
+            (best * inv_g) as f32 * weight
         };
         let mut heap = BinaryHeap::new();
         let mut src_of: std::collections::HashMap<usize, Option<(usize, usize)>> = Default::default();
@@ -885,7 +956,7 @@ impl<'a> Router<'a> {
             };
             for &(dx, dy, step) in &dirs {
                 let (x2, y2) = (x + dx, y + dy);
-                if x2 < 0 || y2 < 0 || x2 >= nx || y2 >= ny {
+                if x2 < wx0 || y2 < wy0 || x2 > wx1 || y2 > wy1 {
                     continue;
                 }
                 let c2 = (y2 * nx + x2) as usize;
@@ -893,7 +964,7 @@ impl<'a> Router<'a> {
                 if !passable(tmask[s2], net) {
                     continue;
                 }
-                let occ = self.occ_t[s2];
+                let occ = occ_t[s2];
                 if strict && occ > 0 {
                     continue;
                 }
@@ -919,7 +990,7 @@ impl<'a> Router<'a> {
             if gr.nl > 1 && passable(vmask[c], net) {
                 let mut occ = 0u16;
                 for l2 in 0..gr.nl {
-                    occ = occ.max(self.occ_v[l2 * n + c]);
+                    occ = occ.max(occ_v[l2 * n + c]);
                 }
                 if strict && occ > 0 {
                     continue;
@@ -971,24 +1042,26 @@ impl<'a> Router<'a> {
     fn conflicts(&self, ni: usize) -> Vec<usize> {
         let n = self.grid.cells();
         let rt = &self.routes[ni];
+        let g = self.group_of[self.nets[ni].class];
+        let (occ_t, occ_v) = (&self.occ_t[g], &self.occ_v[g]);
         let mut out = Vec::new();
         for path in &rt.paths {
             for w in path.windows(2) {
                 if w[0] / n != w[1] / n {
                     let c = w[0] % n;
-                    if (0..self.grid.nl).any(|l| self.occ_v[l * n + c] > 1) {
+                    if (0..self.grid.nl).any(|l| occ_v[l * n + c] > 1) {
                         out.push(n * self.grid.nl + c);
                     }
                 }
             }
             for &s in path {
-                if self.occ_t[s] > 1 {
+                if occ_t[s] > 1 {
                     out.push(s);
                 }
             }
         }
         for &(_, _, s) in &rt.stubs {
-            if self.occ_t[s] > 1 {
+            if occ_t[s] > 1 {
                 out.push(s);
             }
         }
@@ -1044,19 +1117,23 @@ impl<'a> Router<'a> {
                 }
             }
             stats.iterations = it + 1;
+            dbg_time(&format!("iteration {it} conflicts {total}"), t0);
             stats.conflicts_per_iter.push(total);
             if self.prm.snapshots {
                 let (tracks, vias) = self.all_geometry();
                 snapshots.push(Snapshot { iteration: it, conflicts: total, tracks, vias });
             }
-            if total == 0 {
+            if total == 0 || t0.elapsed().as_secs_f64() > self.prm.time_budget_s {
                 break;
             }
             // Halos are conservative: when few conflicts remain, ask the exact DRC whether
             // any of them is real.
             if total <= 40 && (it < 10 || it % 5 == 0) {
                 let (tracks, vias) = self.all_geometry();
-                if drc::check(&obs, &tracks, &vias).is_empty() {
+                let t1 = std::time::Instant::now();
+                let clean = drc::check(&obs, &tracks, &vias).is_empty();
+                dbg_time("  exact drc", t1);
+                if clean {
                     break;
                 }
             }
@@ -1142,4 +1219,10 @@ pub fn route_board(board: &Board, rules: &Rules, prm: &Params) -> Output {
         }
     }
     best
+}
+
+fn dbg_time(what: &str, t0: std::time::Instant) {
+    if std::env::var_os("COPPERLINE_DEBUG").is_some() {
+        eprintln!("debug: {what}: {} ms", t0.elapsed().as_millis());
+    }
 }
