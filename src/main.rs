@@ -3,11 +3,15 @@ use std::process::ExitCode;
 
 use copperline::board::Board;
 use copperline::geom::Core;
+use copperline::router::{Params, Router};
 use copperline::rules::Rules;
+use copperline::write;
 
 const USAGE: &str = "copperline: PCB autorouter for KiCad 9 boards
 
 usage:
+  copperline route <in.kicad_pcb> -o <out.kicad_pcb> [--stats stats.json] [--pitch mm] [--iters N]
+  copperline check <board.kicad_pcb>          run copperline's own DRC on the tracks in a board
   copperline info <board.kicad_pcb>
   copperline pads-json <board.kicad_pcb>      dump parsed pad shapes as JSON (testing)
 ";
@@ -37,6 +41,45 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             for w in b.warnings.iter().take(10) {
                 println!("warning: {w}");
+            }
+            Ok(())
+        }
+        Some("route") => {
+            let input = Path::new(args.get(1).ok_or(USAGE)?);
+            let mut out_path = None;
+            let mut stats_path = None;
+            let mut prm = Params::default();
+            let mut i = 2;
+            while i < args.len() {
+                let val = args.get(i + 1).ok_or(USAGE)?;
+                match args[i].as_str() {
+                    "-o" => out_path = Some(PathBuf::from(val)),
+                    "--stats" => stats_path = Some(PathBuf::from(val)),
+                    "--pitch" => prm.pitch = Some(val.parse().map_err(|_| "bad --pitch")?),
+                    "--iters" => prm.max_iters = val.parse().map_err(|_| "bad --iters")?,
+                    other => return Err(format!("unknown option {other}\n{USAGE}")),
+                }
+                i += 2;
+            }
+            let out_path = out_path.ok_or(USAGE)?;
+            let (b, r, src) = load(input)?;
+            let res = Router::new(&b, &r, prm).run();
+            let s = &res.stats;
+            eprintln!(
+                "pitch {:.3} mm, {} nets, {}/{} connections, {} iterations, {} tracks, {} vias, {:.1} mm, {} ms",
+                s.pitch, s.nets, s.connections_routed, s.connections, s.iterations, s.tracks, s.vias, s.length_mm, s.ms
+            );
+            let text = write::append(&src, &write::block(&b, &res.tracks, &res.vias, 0x5eed))?;
+            std::fs::write(&out_path, text).map_err(|e| format!("{}: {e}", out_path.display()))?;
+            if let Some(sp) = stats_path {
+                let j = serde_json::json!({
+                    "pitch": s.pitch, "cells": s.cells, "nets": s.nets, "nets_complete": s.nets_complete,
+                    "connections": s.connections, "connections_routed": s.connections_routed,
+                    "iterations": s.iterations, "conflicts_per_iter": s.conflicts_per_iter,
+                    "drc_dropped": s.drc_dropped, "tracks": s.tracks, "vias": s.vias,
+                    "length_mm": s.length_mm, "ms": s.ms,
+                });
+                std::fs::write(&sp, j.to_string()).map_err(|e| e.to_string())?;
             }
             Ok(())
         }

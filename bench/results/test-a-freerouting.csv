@@ -1,0 +1,2 @@
+board,router,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
+0004_S1G-Mod_JST_Adapter,freerouting,,ok,1,0,0,0,,13.474,10.395,21,0,61.342
