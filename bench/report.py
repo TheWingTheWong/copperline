@@ -23,11 +23,13 @@ ROUTERS = ["copperline", "freerouting"]
 
 
 def load(split, router):
-    f = RES / f"{split}-{router}.csv"
-    if not f.exists():
-        return {}
-    with open(f) as fh:
-        return {r["board"]: r for r in csv.DictReader(fh)}
+    """Rows of one split/router, merged with any `--shard` CSVs of the same run."""
+    out = {}
+    for f in [RES / f"{split}-{router}.csv", *sorted(RES.glob(f"{split}-{router}-shard*.csv"))]:
+        if f.exists():
+            with open(f) as fh:
+                out.update({r["board"]: r for r in csv.DictReader(fh)})
+    return out
 
 
 def wilson(k, n, z=1.96):

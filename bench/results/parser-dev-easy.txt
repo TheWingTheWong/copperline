@@ -1,0 +1,1 @@
+dev-easy: 3 boards, 73 pads checked, 0 boards with a pad where KiCad copper lies outside ours

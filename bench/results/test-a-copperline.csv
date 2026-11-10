@@ -1,0 +1,40 @@
+board,router,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
+0003_kitspace_grove_adaptor,copperline,,ok,1,0,0,0,,0.085,0.0,11,0,12.854
+0004_S1G-Mod_JST_Adapter,copperline,,ok,1,0,0,0,,0.381,0.0,16,1,46.303
+0005_AVR-Playground_hello_world,copperline,,ok,1,0,0,0,,0.332,0.0,20,0,117.483
+0006_raspberry_pi_pullup_button_pullup_shutdown_button,copperline,,ok,1,0,0,0,,0.062,0.0,25,0,47.426
+0007_raspberry_pi_pullup_button_pullup_shutdown_button(revB),copperline,,ok,1,0,0,0,,0.097,0.0,28,1,46.166
+0008_CapPCB_CapPcb,copperline,,ok,1,0,0,0,,0.11,0.0,23,0,53.998
+0009_SmartLaserCO2-PCB_WaterCool,copperline,,ok,1,0,0,0,,0.154,0.0,39,0,91.192
+0010_SmartLaserCO2-PCB_OptAdjust,copperline,,ok,1,0,0,0,,0.138,0.0,19,0,67.466
+0011_PixyWirelessShield_Shield PIXY,copperline,,ok,1,0,0,0,,1.766,0.0,39,2,143.294
+0012_kitspace_ir_sensor,copperline,,ok,1,0,0,0,,0.109,0.0,23,0,220.158
+0013_crossover-schiit-stack_xover4schiit,copperline,,ok,1,0,0,0,,0.233,0.0,25,0,143.918
+0014_hardware-designs_m-trigger,copperline,,ok,1,0,0,0,,0.106,0.0,35,0,90.625
+0015_kitspace_tt_opt101_module_b1,copperline,,ok,1,0,0,0,,0.108,0.0,32,0,50.468
+0016_breakout-boards_avr-isp-x2,copperline,,ok,1,0,0,0,,0.325,0.0,36,0,32.938
+0017_Blink-Eras_AVR_ISP_Pogo,copperline,,ok,1,0,0,0,,0.313,0.0,31,0,96.567
+0018_Hardware_Playground_hy_adapter,copperline,,ok,1,0,0,0,,0.222,0.0,32,3,41.139
+0019_CubeSAT-Reaction-Wheel_Edison_Motor_Servo,copperline,,ok,1,0,0,0,,0.52,0.0,38,0,100.17
+0020_Cherry-Mx-Bitboard_Cherry Mx Bitboard,copperline,,ok,1,0,0,0,,0.09,0.0,32,0,56.202
+0021_RPi-PWM-Fan-interface_RPi PWM Fan interface,copperline,,ok,1,0,0,0,,0.076,0.0,26,0,47.983
+0022_OpenVNAVI_motor unit,copperline,,ok,1,0,0,0,,0.09,0.0,31,1,44.59
+0023_hardware-designs_si7021-board,copperline,,ok,1,0,0,0,,0.236,0.0,42,3,97.326
+0024_memsarray_mems_modules,copperline,,ok,1,0,0,0,,0.125,0.0,27,3,27.028
+0025_kitspace_hum_temp_sensor,copperline,,ok,1,0,0,0,,0.18,0.0,37,0,77.203
+0026_PCB_constant_current_ac_hv,copperline,,ok,1,0,0,0,,0.232,0.0,23,0,103.056
+0027_ID-FIX_scanConnect,copperline,,ok,1,0,0,0,,0.106,0.0,29,0,45.137
+0028_hardware-designs_c-trigger,copperline,,ok,1,0,0,0,,0.094,0.0,34,0,77.244
+0029_espeverywhere__autosave-espeverywhere_breakout,copperline,,ok,1,0,0,0,,0.089,0.0,25,0,124.748
+0031_kitspace_Potentiometer_mount_4LED,copperline,,ok,1,0,0,0,,0.344,0.0,44,0,181.889
+0032_kitspace_Potentiometer_mount_8LED,copperline,,ok,1,0,0,0,,1.091,0.0,54,3,307.192
+0033_breakout-boards_swd-to-wires,copperline,,ok,1,0,0,0,,0.516,0.0,59,3,85.601
+0034_NavigationThing_NavigationThingBacklight,copperline,,ok,1,0,0,0,,0.117,0.0,29,0,34.607
+0035_KiCad-Like-a-Pro-Tutorial_rf24-breakout-v1,copperline,,ok,1,0,0,0,,2.926,0.0,56,3,159.126
+0036_nRF24breakoutBoard_nRF24-breakout,copperline,,ok,1,0,0,0,,0.418,0.0,50,0,79.973
+0037_hardware-designs_spsgrf-board,copperline,,ok,1,0,0,0,,4.889,0.0,60,5,159.676
+0038_PCB_serie_led_strip,copperline,,ok,1,0,0,0,,0.121,0.0,17,0,31.458
+0039_drawduino_drawduino,copperline,,ok,1,0,0,0,,0.91,0.0,58,1,178.893
+0040_oshtimer_transponder,copperline,,ok,1,0,0,0,,0.204,0.0,33,2,48.709
+0041_FogDrive_attiny45_slim,copperline,,ok,1,0,0,0,,0.105,0.0,34,0,42.013
+0042_starsynctrackers_reset_switch,copperline,,ok,1,0,0,0,,0.503,0.0,33,2,53.461

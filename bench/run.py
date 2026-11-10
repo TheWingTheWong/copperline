@@ -147,6 +147,7 @@ def main():
     ap.add_argument("--boards", default="")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--tag", default="", help="suffix for the CSV name")
+    ap.add_argument("--shard", default="", help="i/n: only boards with index %% n == i (CSV gets -shard<i>)")
     a = ap.parse_args()
     splits = json.loads((HERE / "splits.json").read_text())
     names = splits[a.split]
@@ -155,6 +156,10 @@ def main():
         names = [n for n in names if any(w in n for w in want)]
     if a.limit:
         names = names[: a.limit]
+    if a.shard:
+        i, n = map(int, a.shard.split("/"))
+        names = [x for k, x in enumerate(names) if k % n == i]
+        a.tag = (a.tag + "-" if a.tag else "") + f"shard{i}"
     RESULTS.mkdir(exist_ok=True)
     tag = f"-{a.tag}" if a.tag else ""
     out = RESULTS / f"{a.split}-{a.router}{tag}.csv"
