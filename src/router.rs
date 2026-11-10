@@ -238,7 +238,8 @@ impl<'a> StaticIndex<'a> {
 #[derive(Debug, Clone)]
 struct Access {
     state: usize,
-    anchor: P,
+    /// Pad anchor the stub starts from; `None` when the node is inside the pad copper.
+    anchor: Option<P>,
     cost: f32,
     /// Cells under the stub (for congestion).
     cells: Vec<u32>,
@@ -249,8 +250,8 @@ struct Route {
     /// Paths as state sequences; a path starts on the tree (or a pad access) and ends at a
     /// pad access.
     paths: Vec<Vec<usize>>,
-    /// Stubs used: (layer, pad anchor, access state).
-    stubs: Vec<(usize, P, usize)>,
+    /// Stubs used: (layer, pad anchor, access state); no anchor for in-pad nodes.
+    stubs: Vec<(usize, Option<P>, usize)>,
     stamped_t: Vec<u32>,
     stamped_v: Vec<u32>,
     connected: usize,
@@ -406,7 +407,28 @@ impl<'a> Router<'a> {
         let obs = Obstacles::new(board, rules);
         let idx = StaticIndex::new(&obs, obs_bb.inflate(2.0));
         for (net, pads, ci) in net_class {
-            let access = pads.iter().map(|&pi| r.accesses(&idx, net, pi, ci)).collect();
+            let access: Vec<Vec<Access>> = pads.iter().map(|&pi| r.accesses(&idx, net, pi, ci)).collect();
+            if std::env::var_os("COPPERLINE_DEBUG").is_some() {
+                for (k, a) in access.iter().enumerate() {
+                    let pd = &board.pads[pads[k]];
+                    if a.len() < 3 {
+                        let ci = r.nets.len().min(0) + net_class_dbg(&r, net);
+                        let mut hist = std::collections::BTreeMap::<String, usize>::new();
+                        if let Some((x0, x1, y0, y1)) = r.grid.range(&pd.bbox()) {
+                            for y in y0..=y1 { for x in x0..=x1 {
+                                let q = r.grid.center(x, y);
+                                if pd.shapes.iter().any(|sh| sh.point_gap(q) <= 0.0) {
+                                    let o = r.tmask[ci][pd.layers[0] * r.grid.cells() + y * r.grid.nx + x];
+                                    let key = if o == FREE { "free".into() } else if o == MULTI { "multi".into() } else { format!("net{o}") };
+                                    *hist.entry(key).or_default() += 1;
+                                }
+                            }}
+                        }
+                        eprintln!("debug: owners inside pad {:?}", hist);
+                        eprintln!("debug: pad {}.{} net {} has {} accesses", pd.footprint, pd.number, board.net_name(net), a.len());
+                    }
+                }
+            }
             let bb = pads.iter().fold(BBox::empty(), |b, &pi| b.union(&BBox::of_points(&[board.pads[pi].pos])));
             let hpwl = (bb.max.x - bb.min.x) + (bb.max.y - bb.min.y);
             r.nets.push(Net { id: net, pads, class: ci, access, hpwl });
@@ -551,7 +573,8 @@ impl<'a> Router<'a> {
                         continue;
                     }
                     let q = gr.center(x, y);
-                    let inside = pd.shapes.iter().any(|sh| sh.point_gap(q) < 0.0);
+                    // Zero-radius polygons report a gap of exactly 0 inside, so test `<= 0`.
+                    let inside = pd.shapes.iter().any(|sh| sh.point_gap(q) <= -1e-9 || (sh.radius == 0.0 && sh.point_gap(q) <= 0.0));
                     let d = q.dist(anchor);
                     let gap = pd.gap_to(&Shape::circle(q, 0.0));
                     if !inside && gap > reach {
@@ -567,12 +590,15 @@ impl<'a> Router<'a> {
                 if taken >= 24 {
                     break;
                 }
+                if inside {
+                    out.push(Access { state: s, anchor: None, cost: 0.0, cells: vec![s as u32] });
+                    continue;
+                }
                 if !idx.seg_clear(net, l, anchor, q, c.w, c.cl) {
                     continue;
                 }
                 let cells = self.raster_seg(l, anchor, q);
-                let cost = if inside { 0.0 } else { (d / gr.g) as f32 };
-                out.push(Access { state: s, anchor, cost, cells });
+                out.push(Access { state: s, anchor: Some(anchor), cost: (d / gr.g) as f32, cells });
                 if !inside {
                     taken += 1;
                 }
@@ -638,6 +664,7 @@ impl<'a> Router<'a> {
         }
         for &(l, anchor, s) in &rt.stubs {
             let q = gr.cell_center(s % n);
+            let Some(anchor) = anchor else { continue };
             if q.dist(anchor) > 1e-9 {
                 segs.push((l, anchor, q));
             }
@@ -1082,4 +1109,9 @@ impl<'a> Router<'a> {
         }
         Output { tracks, vias, stats, snapshots }
     }
+}
+
+fn net_class_dbg(r: &Router, net: u32) -> usize {
+    let c = class_of(r.board, r.rules, net);
+    r.classes.iter().position(|k| k.w == c.w && k.cl == c.cl).unwrap_or(0)
 }

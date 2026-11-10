@@ -13,6 +13,7 @@ usage:
   copperline route <in.kicad_pcb> -o <out.kicad_pcb> [--stats stats.json] [--pitch mm] [--iters N]
   copperline check <board.kicad_pcb>          run copperline's own DRC on the tracks in a board
   copperline info <board.kicad_pcb>
+  copperline svg <board.kicad_pcb> -o <out.svg> [--width px]
   copperline pads-json <board.kicad_pcb>      dump parsed pad shapes as JSON (testing)
 ";
 
@@ -81,6 +82,14 @@ fn run(args: &[String]) -> Result<(), String> {
                 });
                 std::fs::write(&sp, j.to_string()).map_err(|e| e.to_string())?;
             }
+            Ok(())
+        }
+        Some("svg") => {
+            let input = Path::new(args.get(1).ok_or(USAGE)?);
+            let out = args.iter().position(|a| a == "-o").and_then(|i| args.get(i + 1)).ok_or(USAGE)?;
+            let width = args.iter().position(|a| a == "--width").and_then(|i| args.get(i + 1)).and_then(|v| v.parse().ok()).unwrap_or(1200.0);
+            let (b, _, _) = load(input)?;
+            std::fs::write(out, copperline::svg::render(&b, &[], &[], width)).map_err(|e| e.to_string())?;
             Ok(())
         }
         Some("pads-json") => {
