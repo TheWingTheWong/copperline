@@ -598,27 +598,55 @@ impl Board {
     }
 }
 
-/// Conservative bounding box of a text item (KiCad stroke font is narrower than this).
+/// Advance widths of KiCad's stroke font for ASCII 32..=126, in units of the glyph size,
+/// measured from pcbnew 9 (`bench/` has no copy of the font; the table is the only data).
+const GLYPH_ADVANCE: [f64; 95] = [0.7619, 0.4762, 0.7619, 1.0, 0.9524, 1.1429, 1.2381, 0.4762, 0.6667, 0.6667, 0.7619, 1.2381, 0.4762, 1.2381, 0.4762, 1.0476, 0.9524, 0.9524, 0.9524, 0.9524, 0.9524, 0.9524, 0.9524, 0.9524, 0.9524, 0.9524, 0.4762, 0.4762, 1.2381, 1.2381, 1.2381, 0.8571, 1.2857, 0.8571, 1.0, 1.0, 1.0, 0.9048, 0.8571, 1.0, 1.0476, 0.4762, 0.7619, 1.0, 0.8095, 1.1429, 1.0476, 1.0476, 1.0, 1.0476, 1.0, 0.9524, 0.7619, 1.0476, 0.8571, 1.1429, 0.9524, 0.8571, 0.9524, 0.6667, 0.6667, 0.6667, 0.5714, 0.7619, 0.381, 0.9048, 0.9048, 0.8571, 0.9048, 0.8571, 0.5714, 0.9048, 0.9048, 0.4762, 0.4762, 0.8095, 0.5238, 1.3333, 0.9048, 0.9048, 0.9048, 0.9048, 0.619, 0.8095, 0.5714, 0.9048, 0.7619, 1.0476, 0.8095, 0.7619, 0.8095, 0.6667, 0.9524, 0.6667, 0.7143];
+
+/// Width of one line of stroke text at size 1 (upper bound: unknown glyphs count as 1.3).
+fn line_width(line: &str) -> f64 {
+    let sum: f64 = line.chars().map(|c| if (' '..='~').contains(&c) { GLYPH_ADVANCE[c as usize - 32] } else { 1.3 }).sum();
+    sum + 0.3
+}
+
+/// Conservative box around a stroke-font text item: exact glyph advances, 1.7 x size per
+/// line, plus the stroke thickness, honouring justification, mirroring and rotation.
 fn text_box(item: &Sexp, tf: Option<&dyn Fn(P) -> P>) -> Option<Shape> {
     let text = item.arg_text(1).or(item.arg_text(0))?;
     let at = item.child("at");
     let pos = at.and_then(xy)?;
     let angle = at.and_then(|a| a.arg_num(2)).unwrap_or(0.0);
-    let font = item.child("effects").and_then(|e| e.child("font"));
+    let effects = item.child("effects");
+    let font = effects.and_then(|e| e.child("font"));
     let size = font.and_then(|f| child_xy(f, "size")).unwrap_or(p(1.0, 1.0));
     let thick = font.and_then(|f| f.child("thickness")).and_then(|t| t.arg_num(0)).unwrap_or(0.15);
-    let lines = text.lines().count().max(1) as f64;
-    let chars = text.lines().map(|l| l.chars().count()).max().unwrap_or(1) as f64;
-    let (hw, hh) = (chars * size.x * 0.6 + thick, lines * size.y * 0.8 + thick);
-    let corners = [p(-hw, -hh), p(hw, -hh), p(hw, hh), p(-hw, hh)];
-    let pts = corners.iter().map(|&c| {
-        let q = c.rot_kicad(angle) + pos;
-        match tf {
-            Some(f) => f(q - pos + pos),
-            None => q,
-        }
-    });
-    Some(Shape::poly(pts.collect(), 0.0))
+    let justify = effects.and_then(|e| e.child("justify"));
+    let has = |k: &str| justify.is_some_and(|j| j.has_atom(k));
+    let lines = text.split("\\n").flat_map(|l| l.lines()).collect::<Vec<_>>();
+    let nlines = lines.len().max(1) as f64;
+    let w = lines.iter().map(|l| line_width(l)).fold(0.0, f64::max) * size.x;
+    let h = (1.7 * nlines) * size.y;
+    let (mut x0, mut x1) = (-w / 2.0, w / 2.0);
+    let (left, right) = if has("mirror") { (has("right"), has("left")) } else { (has("left"), has("right")) };
+    if left {
+        (x0, x1) = (0.0, w);
+    } else if right {
+        (x0, x1) = (-w, 0.0);
+    }
+    let (mut y0, mut y1) = (-h / 2.0, h / 2.0);
+    if has("top") {
+        (y0, y1) = (-0.3 * size.y, h);
+    } else if has("bottom") {
+        (y0, y1) = (-h, 0.3 * size.y);
+    }
+    let m = thick;
+    let corners = [p(x0 - m, y0 - m), p(x1 + m, y0 - m), p(x1 + m, y1 + m), p(x0 - m, y1 + m)];
+    // The angle in the file is absolute (it already includes the footprint's rotation), so
+    // only the anchor goes through the footprint transform.
+    let anchor = match tf {
+        Some(f) => f(pos),
+        None => pos,
+    };
+    Some(Shape::poly(corners.iter().map(|&c| c.rot_kicad(angle) + anchor).collect(), 0.0))
 }
 
 impl Shape {

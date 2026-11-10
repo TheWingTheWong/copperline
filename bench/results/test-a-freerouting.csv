@@ -1,2 +1,12 @@
 board,router,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
+0003_kitspace_grove_adaptor,freerouting,,ok,1,0,0,0,,17.744,9.259,9,0,16.828
 0004_S1G-Mod_JST_Adapter,freerouting,,ok,1,0,0,0,,13.474,10.395,21,0,61.342
+0005_AVR-Playground_hello_world,freerouting,,ok,1,0,0,0,,28.197,15.717,18,0,144.835
+0006_raspberry_pi_pullup_button_pullup_shutdown_button,freerouting,,ok,1,0,0,0,,61.027,11.396,16,0,52.477
+0007_raspberry_pi_pullup_button_pullup_shutdown_button(revB),freerouting,,ok,1,0,0,0,,16.014,13.538,22,0,53.518
+0008_CapPCB_CapPcb,freerouting,,ok,1,0,0,0,,63.161,13.692,19,0,74.98
+0009_SmartLaserCO2-PCB_WaterCool,freerouting,,ok,1,0,0,0,,20.943,23.722,30,0,110.854
+0010_SmartLaserCO2-PCB_OptAdjust,freerouting,,ok,1,0,0,0,,18.074,8.616,12,0,79.333
+0011_PixyWirelessShield_Shield PIXY,freerouting,,ok,1,0,0,0,,12.595,10.828,20,0,163.403
+0012_kitspace_ir_sensor,freerouting,,ok,1,0,0,0,,16.673,27.584,21,0,229.942
+0013_crossover-schiit-stack_xover4schiit,freerouting,,ok,1,0,0,0,,16.169,7.985,21,0,171.606

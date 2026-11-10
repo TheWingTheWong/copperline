@@ -3,7 +3,7 @@ use std::process::ExitCode;
 
 use copperline::board::Board;
 use copperline::geom::Core;
-use copperline::router::{Params, Router};
+use copperline::router::{Params, route_board};
 use copperline::rules::Rules;
 use copperline::write;
 
@@ -64,7 +64,7 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             let out_path = out_path.ok_or(USAGE)?;
             let (b, r, src) = load(input)?;
-            let res = Router::new(&b, &r, prm).run();
+            let res = route_board(&b, &r, &prm);
             let s = &res.stats;
             eprintln!(
                 "pitch {:.3} mm, {} nets, {}/{} connections, {} iterations, {} tracks, {} vias, {:.1} mm, {} ms",

@@ -1115,3 +1115,31 @@ fn net_class_dbg(r: &Router, net: u32) -> usize {
     let c = class_of(r.board, r.rules, net);
     r.classes.iter().position(|k| k.w == c.w && k.cl == c.cl).unwrap_or(0)
 }
+
+/// Route a board, retrying on finer grids while connections are missing: narrow
+/// corridors (between 2.54 mm header pads, say) only exist on a fine enough grid.
+pub fn route_board(board: &Board, rules: &Rules, prm: &Params) -> Output {
+    let first = Router::new(board, rules, prm.clone());
+    let g0 = first.grid().g;
+    let mut best = first.run();
+    for f in [0.6, 0.4] {
+        if best.stats.connections_routed == best.stats.connections || prm.pitch.is_some() {
+            break;
+        }
+        let g = (g0 * f).max(0.03);
+        if g >= best.stats.pitch - 1e-9 {
+            break;
+        }
+        let mut p2 = prm.clone();
+        p2.pitch = Some(g);
+        let ms = best.stats.ms;
+        let mut out = Router::new(board, rules, p2).run();
+        out.stats.ms += ms;
+        if out.stats.connections_routed > best.stats.connections_routed {
+            best = out;
+        } else {
+            best.stats.ms = out.stats.ms;
+        }
+    }
+    best
+}
