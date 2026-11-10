@@ -4,6 +4,7 @@ pub mod board;
 pub mod connect;
 pub mod drc;
 pub mod geom;
+pub mod raster;
 pub mod rng;
 pub mod router;
 pub mod rules;

@@ -11,6 +11,7 @@ const USAGE: &str = "copperline: PCB autorouter for KiCad 9 boards
 
 usage:
   copperline route <in.kicad_pcb> -o <out.kicad_pcb> [--stats stats.json] [--pitch mm] [--iters N]
+                   [--frames DIR [--frame-width PX]]   write one PPM per routing step
   copperline check <board.kicad_pcb>          run copperline's own DRC on the tracks in a board
   copperline info <board.kicad_pcb>
   copperline svg <board.kicad_pcb> -o <out.svg> [--width px]
@@ -49,6 +50,8 @@ fn run(args: &[String]) -> Result<(), String> {
             let input = Path::new(args.get(1).ok_or(USAGE)?);
             let mut out_path = None;
             let mut stats_path = None;
+            let mut frames: Option<PathBuf> = None;
+            let mut frame_w = 800usize;
             let mut prm = Params::default();
             let mut i = 2;
             while i < args.len() {
@@ -58,13 +61,23 @@ fn run(args: &[String]) -> Result<(), String> {
                     "--stats" => stats_path = Some(PathBuf::from(val)),
                     "--pitch" => prm.pitch = Some(val.parse().map_err(|_| "bad --pitch")?),
                     "--iters" => prm.max_iters = val.parse().map_err(|_| "bad --iters")?,
+                    "--frames" => frames = Some(PathBuf::from(val)),
+                    "--frame-width" => frame_w = val.parse().map_err(|_| "bad --frame-width")?,
                     other => return Err(format!("unknown option {other}\n{USAGE}")),
                 }
                 i += 2;
             }
             let out_path = out_path.ok_or(USAGE)?;
             let (b, r, src) = load(input)?;
+            prm.snapshots = frames.is_some();
             let res = route_board(&b, &r, &prm);
+            if let Some(dir) = &frames {
+                std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+                for (i, f) in res.snapshots.iter().enumerate() {
+                    let img = copperline::raster::frame(&b, &f.tracks, &f.vias, &f.hot, frame_w);
+                    std::fs::write(dir.join(format!("frame_{i:04}.ppm")), img.ppm()).map_err(|e| e.to_string())?;
+                }
+            }
             let s = &res.stats;
             eprintln!(
                 "pitch {:.3} mm, {} nets, {}/{} connections, {} iterations, {} tracks, {} vias, {:.1} mm, {} ms",

@@ -304,6 +304,8 @@ pub struct Snapshot {
     pub conflicts: usize,
     pub tracks: Vec<Track>,
     pub vias: Vec<NewVia>,
+    /// Nets still in conflict at this frame.
+    pub hot: Vec<u32>,
 }
 
 pub struct Output {
@@ -1093,14 +1095,19 @@ impl<'a> Router<'a> {
         let mut pres = self.prm.pres_fac;
         let mut snapshots = Vec::new();
         let mut dirty: Vec<bool> = vec![true; self.nets.len()];
+        let every = (self.nets.len() / 40).max(1);
         for it in 0..self.prm.max_iters {
-            for &ni in &order {
+            for (k, &ni) in order.iter().enumerate() {
                 if !dirty[ni] {
                     continue;
                 }
                 self.rip_up(ni);
                 self.route_net(ni, if it == 0 { 0.0 } else { pres }, false);
                 self.stamp_route(ni);
+                if self.prm.snapshots && it == 0 && (k + 1) % every == 0 {
+                    let (tracks, vias) = self.all_geometry();
+                    snapshots.push(Snapshot { iteration: 0, conflicts: 0, tracks, vias, hot: Vec::new() });
+                }
             }
             let mut total = 0;
             for ni in 0..self.nets.len() {
@@ -1121,7 +1128,8 @@ impl<'a> Router<'a> {
             stats.conflicts_per_iter.push(total);
             if self.prm.snapshots {
                 let (tracks, vias) = self.all_geometry();
-                snapshots.push(Snapshot { iteration: it, conflicts: total, tracks, vias });
+                let hot = (0..self.nets.len()).filter(|&i| dirty[i]).map(|i| self.nets[i].id).collect();
+                snapshots.push(Snapshot { iteration: it, conflicts: total, tracks, vias, hot });
             }
             if total == 0 || t0.elapsed().as_secs_f64() > self.prm.time_budget_s {
                 break;
@@ -1182,7 +1190,7 @@ impl<'a> Router<'a> {
         stats.length_mm = tracks.iter().map(|t| t.a.dist(t.b)).sum();
         stats.ms = t0.elapsed().as_millis();
         if self.prm.snapshots {
-            snapshots.push(Snapshot { iteration: stats.iterations, conflicts: 0, tracks: tracks.clone(), vias: vias.clone() });
+            snapshots.push(Snapshot { iteration: stats.iterations, conflicts: 0, tracks: tracks.clone(), vias: vias.clone(), hot: Vec::new() });
         }
         Output { tracks, vias, stats, snapshots }
     }

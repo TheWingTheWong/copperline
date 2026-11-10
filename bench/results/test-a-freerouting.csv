@@ -25,3 +25,7 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0026_PCB_constant_current_ac_hv,freerouting,,ok,0,0,4,0,clearance:2;shorting_items:2,17.213,9.816,27,0,138.506
 0027_ID-FIX_scanConnect,freerouting,,ok,1,0,0,0,,15.691,22.17,18,0,50.801
 0028_hardware-designs_c-trigger,freerouting,,ok,1,0,0,0,,15.216,15.151,20,0,85.508
+0029_espeverywhere__autosave-espeverywhere_breakout,freerouting,,ok,1,0,0,0,,17.769,13.384,38,1,136.323
+0031_kitspace_Potentiometer_mount_4LED,freerouting,,ok,1,0,0,0,,25.39,4.774,24,0,195.69
+0032_kitspace_Potentiometer_mount_8LED,freerouting,,ok,1,0,0,0,,15.208,4.326,19,0,313.229
+0033_breakout-boards_swd-to-wires,freerouting,,ok,1,0,0,0,,25.116,5.504,48,0,99.484
