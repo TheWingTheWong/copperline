@@ -1,0 +1,18 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - run: cargo test --release
+      - run: cargo build --release --lib --target wasm32-unknown-unknown
+      - name: route the bundled example
+        run: |
+          cargo run --release -- route examples/qfn24.kicad_pcb -o /tmp/qfn24-routed.kicad_pcb --stats /tmp/stats.json
+          python3 -c "import json; s = json.load(open('/tmp/stats.json')); assert s['connections_routed'] == s['connections'], s"

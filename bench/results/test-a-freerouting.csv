@@ -29,3 +29,7 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0031_kitspace_Potentiometer_mount_4LED,freerouting,,ok,1,0,0,0,,25.39,4.774,24,0,195.69
 0032_kitspace_Potentiometer_mount_8LED,freerouting,,ok,1,0,0,0,,15.208,4.326,19,0,313.229
 0033_breakout-boards_swd-to-wires,freerouting,,ok,1,0,0,0,,25.116,5.504,48,0,99.484
+0034_NavigationThing_NavigationThingBacklight,freerouting,,ok,0,9,0,0,,503.218,11.347,11,0,16.35
+0035_KiCad-Like-a-Pro-Tutorial_rf24-breakout-v1,freerouting,,ok,1,0,0,0,,20.519,8.328,51,1,197.366
+0036_nRF24breakoutBoard_nRF24-breakout,freerouting,,ok,1,0,0,0,,18.372,5.099,46,0,95.381
+0037_hardware-designs_spsgrf-board,freerouting,,ok,1,0,0,0,,16.766,8.791,63,5,172.424

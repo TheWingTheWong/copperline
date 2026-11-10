@@ -1,6 +1,7 @@
 """Compare copperline's parsed pad copper against KiCad's own pad polygons.
 
-usage: python3 bench/check_pads.py <kicad_pads.json> <copperline_pads.json>
+usage: $KICAD_PYTHON bench/kicad_tool.py pads b.kicad_pcb k.json; copperline pads-json b.kicad_pcb > c.json
+       python3 bench/check_pads.py k.json c.json
 
 For each pad, every vertex of KiCad's outline must lie on our shape's boundary within
 TOL (a vertex outside our shape means we under-estimate copper, which is a bug), and the

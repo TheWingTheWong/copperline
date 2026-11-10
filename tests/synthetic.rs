@@ -129,8 +129,30 @@ fn fine_pitch_qfn_escapes() {
     let r = rules(0.2, 0.2);
     if let Some(dir) = std::env::var_os("COPPERLINE_FIXTURES") {
         std::fs::write(std::path::Path::new(&dir).join("qfn24.kicad_pcb"), fine_pitch_board()).unwrap();
-        std::fs::write(std::path::Path::new(&dir).join("random7.kicad_pcb"), random_board(7)).unwrap();
     }
     let (c, n, _) = check(&fine_pitch_board(), &r);
     assert_eq!(c, n, "QFN fan-out: {c}/{n} nets complete");
+}
+
+#[test]
+fn output_keeps_the_input_byte_for_byte() {
+    use copperline::router::route_board;
+    use copperline::write;
+    let text = random_board(3);
+    let b = Board::parse(&text).unwrap();
+    let r = rules(0.2, 0.25);
+    let out = route_board(&b, &r, &Params::default());
+    assert!(!out.tracks.is_empty());
+    let block = write::block(&b, &out.tracks, &out.vias, 1);
+    let routed = write::append(&text, &block).unwrap();
+    // Removing the appended block gives back the input exactly.
+    assert_eq!(routed.replacen(&block, "", 1), text);
+    // The routed file parses, and its new copper is exactly what the router produced.
+    let rb = Board::parse(&routed).unwrap();
+    assert_eq!(rb.fixed.len() - b.fixed.len(), out.tracks.len() + out.vias.len() * b.layers.len());
+    assert_eq!(rb.vias.len(), out.vias.len());
+    // Fresh, unique UUIDs.
+    let uuids: std::collections::HashSet<&str> = block.match_indices("(uuid \"").map(|(i, _)| &block[i + 7..i + 43]).collect();
+    assert_eq!(uuids.len(), out.tracks.len() + out.vias.len());
+    assert!(!uuids.iter().any(|u| text.contains(u)));
 }

@@ -3,6 +3,7 @@
 dsn <board.kicad_pcb> <out.dsn>               export a Specctra DSN (for Freerouting)
 ses <board.kicad_pcb> <in.ses> <out.kicad_pcb>   import a Freerouting session and save
 refill <board.kicad_pcb>                      refill copper zones in place
+pads <board.kicad_pcb> <out.json>             dump KiCad's own pad polygons (parser check)
 stats <board.kicad_pcb>                       print track/via counts and track length as JSON
 """
 import json
@@ -34,6 +35,27 @@ def refill(src):
     print(len(zones))
 
 
+def pads(src, out_json):
+    """Dump every pad's copper outline as KiCad computes it (for testing our parser)."""
+    board = pcbnew.LoadBoard(src)
+    rows = []
+    for fp in board.GetFootprints():
+        for pad in fp.Pads():
+            layer = pcbnew.F_Cu if pad.IsOnLayer(pcbnew.F_Cu) else pcbnew.B_Cu
+            if not pad.IsOnLayer(layer):
+                continue
+            poly = pad.GetEffectivePolygon(layer, pcbnew.ERROR_INSIDE)
+            outlines = []
+            for i in range(poly.OutlineCount()):
+                o = poly.Outline(i)
+                outlines.append([[o.CPoint(j).x / 1e6, o.CPoint(j).y / 1e6] for j in range(o.PointCount())])
+            pos = pad.GetPosition()
+            rows.append({"ref": fp.GetReference(), "num": pad.GetNumber(), "net": pad.GetNetCode(),
+                         "x": pos.x / 1e6, "y": pos.y / 1e6, "outlines": outlines})
+    json.dump(rows, open(out_json, "w"))
+
+
+
 def stats(src):
     board = pcbnew.LoadBoard(src)
     tracks = vias = 0
@@ -49,4 +71,4 @@ def stats(src):
 
 if __name__ == "__main__":
     cmd, *args = sys.argv[1:]
-    {"dsn": dsn, "ses": ses, "refill": refill, "stats": stats}[cmd](*args)
+    {"dsn": dsn, "ses": ses, "refill": refill, "pads": pads, "stats": stats}[cmd](*args)
