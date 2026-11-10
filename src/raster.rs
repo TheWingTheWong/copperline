@@ -86,6 +86,9 @@ pub fn frame(b: &Board, tracks: &[Track], vias: &[NewVia], hot: &[u32], width: u
     let nl = b.layers.len();
     for l in (0..nl).rev() {
         let col = if l == 0 { LAYER[0] } else if l + 1 == nl { LAYER[1] } else { LAYER[2 + l % 2] };
+        for f in b.fixed.iter().filter(|f| f.layer == l) {
+            img.fill(&f.shape, col, 0.9);
+        }
         for t in tracks.iter().filter(|t| t.layer == l) {
             let c = if hot.contains(&t.net) { 0xf4f4f4 } else { col };
             img.fill(&t.shape(), c, 0.9);
@@ -99,6 +102,10 @@ pub fn frame(b: &Board, tracks: &[Track], vias: &[NewVia], hot: &[u32], width: u
         if let Some(h) = &pd.hole {
             img.fill(h, 0x10151c, 1.0);
         }
+    }
+    for v in &b.vias {
+        img.fill(&Shape::circle(v.pos, v.diameter / 2.0), 0xcfcfcf, 1.0);
+        img.fill(&Shape::circle(v.pos, v.drill / 2.0), 0x10151c, 1.0);
     }
     for v in vias {
         img.fill(&Shape::circle(v.pos, v.diameter / 2.0), 0xcfcfcf, 1.0);

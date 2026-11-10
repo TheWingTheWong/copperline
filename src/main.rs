@@ -12,9 +12,9 @@ const USAGE: &str = "copperline: PCB autorouter for KiCad 9 boards
 usage:
   copperline route <in.kicad_pcb> -o <out.kicad_pcb> [--stats stats.json] [--pitch mm] [--iters N] [--budget s] [--hweight w]
                    [--frames DIR [--frame-width PX]]   write one PPM per routing step
-  copperline check <board.kicad_pcb>          run copperline's own DRC on the tracks in a board
   copperline info <board.kicad_pcb>
   copperline svg <board.kicad_pcb> -o <out.svg> [--width px]
+  copperline render <board.kicad_pcb> -o <out.ppm> [--width px]   raster image of the board's copper
   copperline pads-json <board.kicad_pcb>      dump parsed pad shapes as JSON (testing)
 ";
 
@@ -105,6 +105,15 @@ fn run(args: &[String]) -> Result<(), String> {
             let width = args.iter().position(|a| a == "--width").and_then(|i| args.get(i + 1)).and_then(|v| v.parse().ok()).unwrap_or(1200.0);
             let (b, _, _) = load(input)?;
             std::fs::write(out, copperline::svg::render(&b, &[], &[], width)).map_err(|e| e.to_string())?;
+            Ok(())
+        }
+        Some("render") => {
+            let input = Path::new(args.get(1).ok_or(USAGE)?);
+            let out = args.iter().position(|a| a == "-o").and_then(|i| args.get(i + 1)).ok_or(USAGE)?;
+            let width = args.iter().position(|a| a == "--width").and_then(|i| args.get(i + 1)).and_then(|v| v.parse().ok()).unwrap_or(900);
+            let (b, _, _) = load(input)?;
+            let img = copperline::raster::frame(&b, &[], &[], &[], width);
+            std::fs::write(out, img.ppm()).map_err(|e| e.to_string())?;
             Ok(())
         }
         Some("pads-json") => {
