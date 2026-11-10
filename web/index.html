@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>copperline: a PCB autorouter in your browser</title>
+<style>
+  :root { --bg: #0b0f14; --panel: #131a22; --ink: #d8dee6; --dim: #8592a3; --acc: #e8b04a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  header { padding: 18px 24px 6px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+  h1 { margin: 0; font-size: 22px; letter-spacing: 0.02em; }
+  h1 span { color: var(--acc); }
+  .sub { color: var(--dim); }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; padding: 10px 24px 24px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  #stage { position: relative; background: var(--panel); border-radius: 10px; min-height: 420px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  canvas { max-width: 100%; display: block; }
+  #drop { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(232,176,74,0.12); border: 2px dashed var(--acc); border-radius: 10px; font-size: 18px; }
+  #stage.over #drop { display: flex; }
+  aside { background: var(--panel); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  button, select, label.btn { background: #1d2733; color: var(--ink); border: 1px solid #2c3a4a; border-radius: 6px; padding: 7px 10px; font: inherit; cursor: pointer; text-align: center; }
+  button:hover, label.btn:hover { border-color: var(--acc); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  #status { color: var(--dim); min-height: 3em; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  td { padding: 2px 0; } td:last-child { text-align: right; color: var(--acc); }
+  .legend span { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 4px 0 10px; vertical-align: middle; }
+  .legend span:first-child { margin-left: 0; }
+  a { color: var(--acc); }
+  input[type=file] { display: none; }
+  #scrub { width: 100%; }
+</style>
+</head>
+<body>
+<header>
+  <h1><span>copper</span>line</h1>
+  <div class="sub">A from-scratch PCB autorouter (Rust, compiled to WebAssembly). Nothing leaves your browser.</div>
+</header>
+<main>
+  <div id="stage"><canvas id="cv" width="900" height="600"></canvas><div id="drop">Drop a .kicad_pcb (and its .kicad_pro)</div></div>
+  <aside>
+    <select id="example"></select>
+    <label class="btn">Open .kicad_pcb + .kicad_pro<input id="file" type="file" accept=".kicad_pcb,.kicad_pro" multiple></label>
+    <button id="replay" disabled>Replay</button>
+    <input id="scrub" type="range" min="0" max="0" value="0" disabled>
+    <div id="status">Loading router...</div>
+    <table id="stats"></table>
+    <button id="download" disabled>Download routed .kicad_pcb</button>
+    <div class="legend"><span style="background:#d9483b"></span>top <span style="background:#3b7dd8"></span>bottom <span style="background:#f4f4f4"></span>in conflict</div>
+    <div class="sub" style="font-size:13px">Every frame is one step of negotiated-congestion routing: nets first route through each other, then overlap gets more expensive each pass until no two nets share copper. Results are written as plain KiCad 9 tracks and vias. <a href="https://github.com/TheWingTheWong/copperline">Source and benchmark</a>.</div>
+  </aside>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

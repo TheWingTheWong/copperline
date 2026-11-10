@@ -19,6 +19,7 @@ use std::collections::{BinaryHeap, HashSet};
 use std::cmp::Ordering;
 
 use crate::board::Board;
+use crate::clock::Clock;
 use crate::drc::{self, NewVia, Obstacles, Track};
 use crate::geom::{BBox, P, Shape, p};
 use crate::rules::Rules;
@@ -48,6 +49,8 @@ pub struct Params {
     pub snapshots: bool,
     /// Wall-clock budget for negotiation, in seconds; the router then legalises what it has.
     pub time_budget_s: f64,
+    /// Stop negotiating after this many passes without a new best conflict count.
+    pub stall_iters: usize,
 }
 
 impl Default for Params {
@@ -65,6 +68,7 @@ impl Default for Params {
             max_cells: 3_000_000,
             snapshots: false,
             time_budget_s: 90.0,
+            stall_iters: 15,
         }
     }
 }
@@ -417,10 +421,10 @@ impl<'a> Router<'a> {
             target: vec![0; nl * n],
             touched: Vec::new(),
         };
-        let t0 = std::time::Instant::now();
+        let t0 = Clock::now();
         r.build_masks();
         dbg_time("masks", t0);
-        let t0 = std::time::Instant::now();
+        let t0 = Clock::now();
         let obs = Obstacles::new(board, rules);
         let idx = StaticIndex::new(&obs, obs_bb.inflate(2.0));
         for (net, pads, ci) in net_class {
@@ -1088,7 +1092,7 @@ impl<'a> Router<'a> {
     }
 
     pub fn run(mut self) -> Output {
-        let t0 = std::time::Instant::now();
+        let t0 = Clock::now();
         let mut stats = Stats { pitch: self.grid.g, cells: self.grid.cells() * self.grid.nl, nets: self.nets.len(), ..Default::default() };
         let order = self.net_order();
         let obs = Obstacles::new(self.board, self.rules);
@@ -1096,6 +1100,7 @@ impl<'a> Router<'a> {
         let mut snapshots = Vec::new();
         let mut dirty: Vec<bool> = vec![true; self.nets.len()];
         let every = (self.nets.len() / 40).max(1);
+        let (mut best_total, mut since_best) = (usize::MAX, 0usize);
         for it in 0..self.prm.max_iters {
             for (k, &ni) in order.iter().enumerate() {
                 if !dirty[ni] {
@@ -1131,16 +1136,32 @@ impl<'a> Router<'a> {
                 let hot = (0..self.nets.len()).filter(|&i| dirty[i]).map(|i| self.nets[i].id).collect();
                 snapshots.push(Snapshot { iteration: it, conflicts: total, tracks, vias, hot });
             }
-            if total == 0 || t0.elapsed().as_secs_f64() > self.prm.time_budget_s {
+            if total == 0 || t0.ms() / 1000.0 > self.prm.time_budget_s {
                 break;
+            }
+            // Stagnation: the remaining conflicts are usually a few nets that must swap
+            // layers in a tight spot; strict rerouting below resolves them faster.
+            if total < best_total {
+                (best_total, since_best) = (total, 0);
+            } else {
+                since_best += 1;
+                if since_best >= self.prm.stall_iters {
+                    break;
+                }
             }
             // Halos are conservative: when few conflicts remain, ask the exact DRC whether
             // any of them is real.
             if total <= 40 && (it < 10 || it % 5 == 0) {
                 let (tracks, vias) = self.all_geometry();
-                let t1 = std::time::Instant::now();
-                let clean = drc::check(&obs, &tracks, &vias).is_empty();
+                let t1 = Clock::now();
+                let viol = drc::check(&obs, &tracks, &vias);
+                let clean = viol.is_empty();
                 dbg_time("  exact drc", t1);
+                if std::env::var_os("COPPERLINE_DEBUG").is_some() {
+                    for v in viol.iter().take(4) {
+                        eprintln!("debug:   {:?} net {} vs {} at {:.3},{:.3} gap {:.3} need {:.3}", v.kind, self.board.net_name(v.net), self.board.net_name(v.other), v.at.x, v.at.y, v.gap, v.required);
+                    }
+                }
                 if clean {
                     break;
                 }
@@ -1188,7 +1209,7 @@ impl<'a> Router<'a> {
         stats.tracks = tracks.len();
         stats.vias = vias.len();
         stats.length_mm = tracks.iter().map(|t| t.a.dist(t.b)).sum();
-        stats.ms = t0.elapsed().as_millis();
+        stats.ms = t0.ms() as u128;
         if self.prm.snapshots {
             snapshots.push(Snapshot { iteration: stats.iterations, conflicts: 0, tracks: tracks.clone(), vias: vias.clone(), hot: Vec::new() });
         }
@@ -1229,8 +1250,8 @@ pub fn route_board(board: &Board, rules: &Rules, prm: &Params) -> Output {
     best
 }
 
-fn dbg_time(what: &str, t0: std::time::Instant) {
+fn dbg_time(what: &str, t0: Clock) {
     if std::env::var_os("COPPERLINE_DEBUG").is_some() {
-        eprintln!("debug: {what}: {} ms", t0.elapsed().as_millis());
+        eprintln!("debug: {what}: {:.0} ms", t0.ms());
     }
 }
