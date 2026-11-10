@@ -37,6 +37,9 @@ pub struct Params {
     pub via_cost: f32,
     pub pres_fac: f32,
     pub pres_growth: f32,
+    /// Cap on the present-congestion factor: past it, history costs do the work and A*
+    /// does not degenerate into a flood fill.
+    pub pres_max: f32,
     pub hist_fac: f32,
     /// Extra cost factor for moves against a layer's preferred direction.
     pub dir_penalty: f32,
@@ -61,6 +64,7 @@ impl Default for Params {
             via_cost: 30.0,
             pres_fac: 0.6,
             pres_growth: 1.6,
+            pres_max: 40.0,
             hist_fac: 0.4,
             dir_penalty: 0.15,
             turn_cost: 0.4,
@@ -216,7 +220,7 @@ impl<'a> StaticIndex<'a> {
             if *n == net && net != 0 {
                 continue;
             }
-            if s.gap(sh) < cl.max(*c_o) + drc::EPS {
+            if s.gap(sh) < cl.max(*c_o) - drc::TOL {
                 return false;
             }
         }
@@ -225,13 +229,13 @@ impl<'a> StaticIndex<'a> {
             if *n == net && net != 0 {
                 continue;
             }
-            if s.gap(h) < r.min_hole_clearance + drc::EPS {
+            if s.gap(h) < r.min_hole_clearance - drc::TOL {
                 return false;
             }
         }
         for &i in &eids {
             let (ea, eb) = self.obs.board.edges[i as usize];
-            if s.gap(&Shape::capsule(ea, eb, 0.0)) < r.min_copper_edge_clearance + drc::EPS {
+            if s.gap(&Shape::capsule(ea, eb, 0.0)) < r.min_copper_edge_clearance - drc::TOL {
                 return false;
             }
         }
@@ -250,6 +254,8 @@ struct Access {
     state: usize,
     /// Pad anchor the stub starts from; `None` when the node is inside the pad copper.
     anchor: Option<P>,
+    /// Optional bend: the stub runs anchor -> mid along the pad axis, then mid -> node.
+    mid: Option<P>,
     cost: f32,
     /// Cells under the stub (for congestion).
     cells: Vec<u32>,
@@ -260,8 +266,8 @@ struct Route {
     /// Paths as state sequences; a path starts on the tree (or a pad access) and ends at a
     /// pad access.
     paths: Vec<Vec<usize>>,
-    /// Stubs used: (layer, pad anchor, access state); no anchor for in-pad nodes.
-    stubs: Vec<(usize, Option<P>, usize)>,
+    /// Stubs used: (layer, pad anchor, bend, access state); no anchor for in-pad nodes.
+    stubs: Vec<(usize, Option<P>, Option<P>, usize)>,
     /// Halo cells stamped per occupancy group: (track-centre grid, via-centre grid).
     stamped: Vec<(Vec<u32>, Vec<u32>)>,
     connected: usize,
@@ -349,6 +355,8 @@ pub struct Router<'a> {
     hist_v: Vec<f32>,
     nets: Vec<Net>,
     routes: Vec<Route>,
+    /// Pads found unreachable on the static masks (per net); never searched again.
+    dead: Vec<Vec<bool>>,
     // search scratch
     dist: Vec<f32>,
     parent: Vec<u32>,
@@ -416,6 +424,7 @@ impl<'a> Router<'a> {
             hist_v: vec![0.0; n],
             nets: Vec::new(),
             routes: Vec::new(),
+            dead: Vec::new(),
             dist: vec![f32::INFINITY; nl * n],
             parent: vec![u32::MAX; nl * n],
             target: vec![0; nl * n],
@@ -455,6 +464,7 @@ impl<'a> Router<'a> {
             r.nets.push(Net { id: net, pads, class: ci, access, hpwl });
         }
         r.routes = vec![Route::default(); r.nets.len()];
+        r.dead = r.nets.iter().map(|n| vec![false; n.pads.len()]).collect();
         dbg_time("accesses", t0);
         r
     }
@@ -625,16 +635,56 @@ impl<'a> Router<'a> {
                     break;
                 }
                 if inside {
-                    out.push(Access { state: s, anchor: None, cost: 0.0, cells: vec![s as u32] });
+                    out.push(Access { state: s, anchor: None, mid: None, cost: 0.0, cells: vec![s as u32] });
                     continue;
                 }
                 if !idx.seg_clear(net, l, anchor, q, c.w, c.cl) {
                     continue;
                 }
                 let cells = self.raster_seg(l, anchor, q);
-                out.push(Access { state: s, anchor: Some(anchor), cost: (d / gr.g) as f32, cells });
+                out.push(Access { state: s, anchor: Some(anchor), mid: None, cost: (d / gr.g) as f32, cells });
                 if !inside {
                     taken += 1;
+                }
+            }
+            // Fine-pitch pads: a stub that leaves the pad at an angle clips the
+            // neighbours, so also leave straight along each axis past the pad's end and
+            // bend onto the grid there.
+            if taken < 6 {
+                let pb = pd.bbox();
+                for (dx, dy) in [(1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)] {
+                    let ext = if dx > 0.0 { pb.max.x - anchor.x } else if dx < 0.0 { anchor.x - pb.min.x } else if dy > 0.0 { pb.max.y - anchor.y } else { anchor.y - pb.min.y };
+                    let mut got = 0;
+                    for extra in [0.05, 0.2, 0.4, 0.7, 1.0] {
+                        let e = anchor + p(dx, dy) * (ext + extra);
+                        if !idx.seg_clear(net, l, anchor, e, c.w, c.cl) {
+                            break;
+                        }
+                        let Some((cx0, cx1, cy0, cy1)) = gr.range(&BBox::of_points(&[e]).inflate(1.5 * gr.g)) else { continue };
+                        let mut near = Vec::new();
+                        for y in cy0..=cy1 {
+                            for x in cx0..=cx1 {
+                                let s = l * n + y * gr.nx + x;
+                                if passable(self.tmask[ci][s], net) {
+                                    near.push((gr.center(x, y).dist(e), s, gr.center(x, y)));
+                                }
+                            }
+                        }
+                        near.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+                        for (dq, s, q) in near.into_iter().take(3) {
+                            if idx.seg_clear(net, l, e, q, c.w, c.cl) {
+                                let mut cells = self.raster_seg(l, anchor, e);
+                                cells.extend(self.raster_seg(l, e, q));
+                                let cost = ((ext + extra + dq) / gr.g) as f32;
+                                out.push(Access { state: s, anchor: Some(anchor), mid: Some(e), cost, cells });
+                                got += 1;
+                                break;
+                            }
+                        }
+                        if got >= 2 {
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -696,10 +746,15 @@ impl<'a> Router<'a> {
                 i = j;
             }
         }
-        for &(l, anchor, s) in &rt.stubs {
+        for &(l, anchor, mid, s) in &rt.stubs {
             let q = gr.cell_center(s % n);
             let Some(anchor) = anchor else { continue };
-            if q.dist(anchor) > 1e-9 {
+            if let Some(e) = mid {
+                segs.push((l, anchor, e));
+                if q.dist(e) > 1e-9 {
+                    segs.push((l, e, q));
+                }
+            } else if q.dist(anchor) > 1e-9 {
                 segs.push((l, anchor, q));
             }
         }
@@ -795,7 +850,7 @@ impl<'a> Router<'a> {
         route.connected = 1;
         let mut tree: Vec<usize> = Vec::new();
         loop {
-            let remaining: Vec<usize> = (0..npads).filter(|&k| !in_tree[k] && !access[k].is_empty()).collect();
+            let remaining: Vec<usize> = (0..npads).filter(|&k| !in_tree[k] && !access[k].is_empty() && !self.dead[ni][k]).collect();
             if remaining.is_empty() {
                 break;
             }
@@ -837,21 +892,26 @@ impl<'a> Router<'a> {
                 }
             }
             let Some((path, src_stub, (k, ai))) = found else {
-                // Mark unreachable pads so we stop trying them.
+                // None of the remaining pads is reachable from this tree. Without hard
+                // congestion blocking that is a property of the static masks, so remember
+                // it: failed searches flood the board and would repeat every pass.
                 for &k in &remaining {
                     in_tree[k] = true;
+                    if !strict {
+                        self.dead[ni][k] = true;
+                    }
                 }
                 break;
             };
             if let Some((sk, sai)) = src_stub {
                 let a = &access[sk][sai];
                 let l = a.state / self.grid.cells();
-                if !route.stubs.iter().any(|st| st.2 == a.state) {
-                    route.stubs.push((l, a.anchor, a.state));
+                if !route.stubs.iter().any(|st| st.3 == a.state) {
+                    route.stubs.push((l, a.anchor, a.mid, a.state));
                 }
             }
             let a = &access[k][ai];
-            route.stubs.push((a.state / self.grid.cells(), a.anchor, a.state));
+            route.stubs.push((a.state / self.grid.cells(), a.anchor, a.mid, a.state));
             in_tree[k] = true;
             route.connected += 1;
             tree.extend(path.iter().copied());
@@ -1022,6 +1082,9 @@ impl<'a> Router<'a> {
                 }
             }
         }
+        if pops > 200_000 && std::env::var_os("COPPERLINE_DEBUG").is_some() {
+            eprintln!("debug:   astar net {} pops {} found {} strict {} pres {:.1} window {:?}", self.board.net_name(net), pops, goal.is_some(), strict, pres, win);
+        }
         let res = goal.map(|g| {
             let mut path = vec![g];
             let mut cur = g;
@@ -1066,7 +1129,7 @@ impl<'a> Router<'a> {
                 }
             }
         }
-        for &(_, _, s) in &rt.stubs {
+        for &(_, _, _, s) in &rt.stubs {
             if occ_t[s] > 1 {
                 out.push(s);
             }
@@ -1166,7 +1229,7 @@ impl<'a> Router<'a> {
                     break;
                 }
             }
-            pres *= self.prm.pres_growth;
+            pres = (pres * self.prm.pres_growth).min(self.prm.pres_max);
         }
         // Legalise: nets still in conflict are rerouted with hard blocking, then the exact
         // DRC has the last word.
@@ -1225,11 +1288,16 @@ fn net_class_dbg(r: &Router, net: u32) -> usize {
 /// Route a board, retrying on finer grids while connections are missing: narrow
 /// corridors (between 2.54 mm header pads, say) only exist on a fine enough grid.
 pub fn route_board(board: &Board, rules: &Rules, prm: &Params) -> Output {
-    let first = Router::new(board, rules, prm.clone());
+    let clock = Clock::now();
+    let total = prm.time_budget_s;
+    let mut p1 = prm.clone();
+    p1.time_budget_s = if prm.pitch.is_some() { total } else { total * 0.6 };
+    let first = Router::new(board, rules, p1);
     let g0 = first.grid().g;
     let mut best = first.run();
-    for f in [0.6, 0.4] {
-        if best.stats.connections_routed == best.stats.connections || prm.pitch.is_some() {
+    for (i, f) in [0.6, 0.4].into_iter().enumerate() {
+        let left = total - clock.ms() / 1000.0;
+        if best.stats.connections_routed == best.stats.connections || prm.pitch.is_some() || left < 2.0 {
             break;
         }
         let g = (g0 * f).max(0.03);
@@ -1238,15 +1306,15 @@ pub fn route_board(board: &Board, rules: &Rules, prm: &Params) -> Output {
         }
         let mut p2 = prm.clone();
         p2.pitch = Some(g);
-        let ms = best.stats.ms;
+        p2.time_budget_s = if i == 0 { left * 0.6 } else { left };
         let mut out = Router::new(board, rules, p2).run();
-        out.stats.ms += ms;
         if out.stats.connections_routed > best.stats.connections_routed {
             best = out;
         } else {
-            best.stats.ms = out.stats.ms;
+            out.stats = Stats::default();
         }
     }
+    best.stats.ms = clock.ms() as u128;
     best
 }
 

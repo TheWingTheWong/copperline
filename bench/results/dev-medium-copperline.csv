@@ -121,3 +121,81 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0272_tinymuseum_museum,copperline,,ok,1,0,0,0,,152.088,0.0,319,16,612.515
 0273_omega-dock-new_omega-dock-new,copperline,,ok,1,0,0,0,,2.202,0.0,185,10,219.302
 0274_kitspace_OpenSpritzer_1.3,copperline,,ok,1,0,0,0,,3.595,0.0,266,8,768.725
+0275_roomba-ESP12E_roomba-esp,copperline,,ok,0,1,0,0,,357.928,0.0,312,37,671.259
+0276_nan-15_top-plate,copperline,,ok,1,0,0,0,,12.385,0.0,315,20,993.59
+0277_kitspace_bobbycar,copperline,,ok,1,0,0,0,,1.634,0.0,205,7,393.544
+0278_1-Wire-Wing-pcb_1-Wire_Wing,copperline,,ok,1,0,0,0,,1.303,0.0,186,14,365.288
+0280_APC_AtariPunkConsole,copperline,,ok,1,0,0,0,,0.832,0.0,188,3,384.676
+0281_SynthDrumTrigger_Synth Drum Trigger,copperline,,ok,1,0,0,0,,0.601,0.0,185,0,385.977
+0283_atmegax8-protoboard_atmegax8-protoboard,copperline,,ok,1,0,0,0,,0.54,0.0,145,1,284.927
+0284_kitspace_PIS,copperline,,ok,1,0,0,0,,0.867,0.0,213,2,366.311
+0286_breakout-boards_esp8266-jtag,copperline,,ok,1,0,0,0,,1.212,0.0,175,11,271.606
+0287_OLD-Stepper-motor-board-design-project_Stepper motor driver,copperline,,ok,1,0,0,0,,1.946,0.0,221,26,438.03
+0288_raspberrypi-3-usb-hub_usb_hub,copperline,,ok,1,0,0,0,,3.444,0.0,223,2,730.871
+0289_supply-ldo-adj-single_supply-ldo-adj-single,copperline,,ok,1,0,0,0,,0.39,0.0,158,0,227.575
+0290_m2-electronics_m2rl,copperline,,ok,1,0,0,0,,0.85,0.0,192,8,242.47
+0292_sb-serial-usb_ch340,copperline,,ok,1,0,0,0,,2.865,0.0,207,19,354.804
+0295_arduino_arduino leds,copperline,,ok,1,0,0,0,,2.212,0.0,236,0,658.37
+0297_scimpy_crossover,copperline,,ok,1,0,0,0,,3.563,0.0,276,12,481.572
+0298_kitspace_tt_nano_HAT_b1,copperline,,ok,1,0,0,0,,0.878,0.0,229,3,397.719
+0299_gpsclock_clock,copperline,,ok,1,0,0,0,,5.926,0.0,336,18,1155.504
+0301_flatpack2-adapter_EltekFlatpack2,copperline,,ok,1,0,0,0,,3.593,0.0,124,5,292.338
+0302_disco-dongle_DiscoDongle,copperline,,ok,1,0,0,0,,4.68,0.0,253,22,336.271
+0303_ESP-Breakout_ESP-Breakout,copperline,,ok,1,0,0,0,,0.979,0.0,122,21,183.248
+0304_gepetto_circuito,copperline,,ok,1,0,0,0,,4.83,0.0,284,7,859.033
+0305_raspican_raspican,copperline,,ok,1,0,0,0,,3.422,0.0,238,9,633.217
+0306_pcb-ice40-vga_VGA expansion,copperline,,ok,1,0,0,0,,1.322,0.0,140,11,426.315
+0309_ESPLux_Board,copperline,,ok,1,0,0,0,,3.678,0.0,240,20,620.066
+0310_rufs_smart_psu,copperline,,ok,1,0,0,0,,1.068,0.0,197,4,327.954
+0311_soil-moisture-sensor-analog_analog-moist-sensor,copperline,,ok,1,0,0,0,,2.828,0.0,226,11,243.773
+0312_S4A-Mini-board_s4a-mini-board,copperline,,ok,1,0,0,0,,9.081,0.0,304,12,964.924
+0313_Teensy-Hats_Teensy-LCD-LiDAR-Hat,copperline,,ok,1,0,0,0,,6.223,0.0,261,17,670.276
+0315_RASPMINI_RASPmini,copperline,,ok,0,2,0,0,,313.66,0.0,458,26,1141.898
+0316_kicad-workshop_fancyboard,copperline,,ok,1,0,0,0,,8.354,0.0,244,17,414.332
+0317_DerKnopf_led-ring,copperline,,ok,1,0,0,0,,5.136,0.0,361,37,446.19
+0318_kitspace_hbridge_driver,copperline,,ok,1,0,0,0,,0.978,0.0,263,2,518.96
+0319_magic-table_etch-a-sketch_cyclone,copperline,,ok,1,0,0,0,,0.963,0.0,286,2,732.802
+0320_kitspace_Arduino_uno_sheild,copperline,,ok,1,0,0,0,,1.958,0.0,291,12,943.208
+0321_polearm-weapon_rod,copperline,,ok,1,0,0,0,,2.96,0.0,269,16,882.063
+0322_USBtin_USBtin,copperline,,ok,1,0,0,0,,0.831,0.0,237,1,463.238
+0323_WemosLoraTracker_wemosGPSrfm,copperline,,ok,1,0,0,0,,3.107,0.0,233,23,615.666
+0324_nodemcu-backstage_NodeMCU Backstage,copperline,,ok,1,0,0,0,,0.664,0.0,158,3,304.707
+0325_nanoSwinSidC_nanoSwinSidC,copperline,,ok,0,3,0,0,,95.522,0.0,373,33,385.964
+0326_Atmel-ICE-Header-Adapter_ice header adapter pcb,copperline,,ok,1,0,0,0,,14.722,0.0,396,20,763.406
+0328_SMDBreakouts_smd_breakout_quad,copperline,,ok,1,0,0,0,,1.204,0.0,173,16,132.202
+0330_thegrid_pole,copperline,,ok,1,0,0,0,,13.41,0.0,208,18,197.666
+0333_gwurrbus_gwurrbus-relay,copperline,,ok,1,0,0,0,,1.365,0.0,213,0,626.026
+0334_esp-serial-terminal_esp-com,copperline,,ok,1,0,0,0,,3.571,0.0,244,14,469.299
+0336_AVR-ISP_level-shifter_AVR-ISP_level-shifter,copperline,,ok,1,0,0,0,,1.289,0.0,262,3,303.077
+0337_rfidBoard_rfid,copperline,,ok,1,0,0,0,,3.276,0.0,192,10,239.143
+0338_shutter_Shutter V4,copperline,,ok,1,0,0,0,,4.965,0.0,312,7,614.312
+0339_TTNEnschedeMote_ArduinoNanoRN2483,copperline,,ok,1,0,0,0,,0.95,0.0,145,5,355.503
+0340_kitspace_Brk40p,copperline,,ok,0,38,0,0,,1.69,0.0,13,2,61.176
+0341_vatx_vatx,copperline,,ok,1,0,0,0,,3.046,0.0,248,7,499.471
+0344_mavbridge_mavbridge,copperline,,ok,1,0,0,0,,2.845,0.0,274,27,381.49
+0346_ESP32-Module-Breakout_ESP32S-breakout,copperline,,ok,1,0,0,0,,4.153,0.0,274,39,662.207
+0347_kitspace_peltier,copperline,,ok,1,0,0,0,,2.468,0.0,300,2,584.482
+0349_kitspace_8_switch_array,copperline,,ok,1,0,0,0,,1.177,0.0,224,0,500.913
+0350_fuzzer_fuzzer,copperline,,ok,1,0,0,0,,4.404,0.0,285,22,450.481
+0351_ESP07-Breakout_ESP07-Breakout,copperline,,ok,1,0,0,0,,4.283,0.0,280,17,595.601
+0352_usb_rs232c_usb_rs232c_rev_a,copperline,,ok,1,0,0,0,,1.19,0.0,183,21,234.775
+0357_kitspace_dynamixel_shield,copperline,,ok,1,0,0,0,,3.529,0.0,337,15,742.278
+0358_esp12-appliance_mod_esp12-appliance-mod,copperline,,ok,1,0,0,0,,2.118,0.0,213,13,601.712
+0359_kitspace_tt_nano_HAT_b2,copperline,,ok,1,0,0,0,,0.992,0.0,300,4,571.827
+0360_PCB_small_halogen_replacement,copperline,,ok,1,0,0,0,,1.465,0.0,126,5,245.605
+0361_phone_rtty_interface_phone_rtty_rev_b,copperline,,ok,1,0,0,0,,0.891,0.0,250,2,426.542
+0364_scimpy_volumebuffer,copperline,,ok,1,0,0,0,,1.343,0.0,334,6,577.566
+0365_DasBlinkinput_Das Blinkinput,copperline,,ok,1,0,0,0,,3.875,0.0,238,26,418.649
+0366_ReST32_ReST RRD-FGC-Adapter,copperline,,ok,1,0,0,0,,7.134,0.0,406,26,694.98
+0367_pcb-usb-ft245r-parallel-adapter_pcb-usb-ft245r-parallel-adapter,copperline,,ok,1,0,0,0,,1.445,0.0,202,14,317.82
+0369_Inkjet__autosave-InkjetDriver,copperline,,ok,1,0,0,0,,8.674,0.0,365,40,1059.179
+0370_Biscay_Blueeye_mcu,copperline,,ok,1,0,0,0,,7.091,0.0,300,13,1027.51
+0371_Minitel_bbb-adapter,copperline,,ok,1,0,0,0,,6.953,0.0,313,9,838.536
+0373_badge2016_Badge_init,copperline,,ok,1,0,0,0,,2.052,0.0,173,4,306.416
+0376_cat-trainer_teensy_base_pcb,copperline,,ok,1,0,0,0,,15.455,0.0,356,7,842.286
+0378_airqualitystation_hardware,copperline,,ok,1,0,0,0,,2.445,0.0,257,20,471.793
+0380_Minitel_driver_board,copperline,,ok,1,0,0,0,,4.713,0.0,302,12,777.706
+0382_LT3652EvalBoard_LT3652EvalBoard,copperline,,ok,1,0,0,0,,8.147,0.0,278,15,451.363
+0383_FRM16_Relay_Module_I2C_Controller_relay_controller,copperline,,ok,1,0,0,0,,52.106,0.0,379,47,1296.795
+0384_DerKnopf_digi-pot,copperline,,ok,1,0,0,0,,18.257,0.0,367,30,353.904
+0387_RC2014_RC2014 RAM,copperline,,ok,1,0,0,0,,7.826,0.0,447,26,1810.895

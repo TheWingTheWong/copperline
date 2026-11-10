@@ -10,7 +10,7 @@ use copperline::write;
 const USAGE: &str = "copperline: PCB autorouter for KiCad 9 boards
 
 usage:
-  copperline route <in.kicad_pcb> -o <out.kicad_pcb> [--stats stats.json] [--pitch mm] [--iters N]
+  copperline route <in.kicad_pcb> -o <out.kicad_pcb> [--stats stats.json] [--pitch mm] [--iters N] [--budget s] [--hweight w]
                    [--frames DIR [--frame-width PX]]   write one PPM per routing step
   copperline check <board.kicad_pcb>          run copperline's own DRC on the tracks in a board
   copperline info <board.kicad_pcb>
@@ -61,6 +61,8 @@ fn run(args: &[String]) -> Result<(), String> {
                     "--stats" => stats_path = Some(PathBuf::from(val)),
                     "--pitch" => prm.pitch = Some(val.parse().map_err(|_| "bad --pitch")?),
                     "--iters" => prm.max_iters = val.parse().map_err(|_| "bad --iters")?,
+                    "--hweight" => prm.h_weight = val.parse().map_err(|_| "bad --hweight")?,
+                    "--budget" => prm.time_budget_s = val.parse().map_err(|_| "bad --budget")?,
                     "--frames" => frames = Some(PathBuf::from(val)),
                     "--frame-width" => frame_w = val.parse().map_err(|_| "bad --frame-width")?,
                     other => return Err(format!("unknown option {other}\n{USAGE}")),

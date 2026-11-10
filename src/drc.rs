@@ -12,6 +12,9 @@ use crate::rules::Rules;
 /// Safety margin added to every clearance (mm). KiCad compares integer nanometres, and we
 /// write coordinates rounded to 1 nm, so a few nm of slack avoids exact-boundary flips.
 pub const EPS: f64 = 0.0005;
+/// Float tolerance for clearance comparisons: a gap equal to the requirement is legal
+/// (KiCad flags `actual < required`, in integer nanometres).
+pub const TOL: f64 = 1e-7;
 
 #[derive(Debug, Clone)]
 pub struct Track {
@@ -145,7 +148,7 @@ pub fn check(obs: &Obstacles, tracks: &[Track], vias: &[NewVia]) -> Vec<Violatio
                 continue;
             }
             let g = it.shape.gap(s);
-            if g < req {
+            if g < req - TOL {
                 out.push(Violation { kind: Kind::Clearance, net: it.net, other: *net, at: first_point(&it.shape), gap: g, required: req });
             }
         }
@@ -159,13 +162,13 @@ pub fn check(obs: &Obstacles, tracks: &[Track], vias: &[NewVia]) -> Vec<Violatio
                 continue;
             }
             let g = it.shape.gap(h);
-            if g < req {
+            if g < req - TOL {
                 out.push(Violation { kind: Kind::HoleClearance, net: it.net, other: *net, at: first_point(&it.shape), gap: g, required: req });
             }
         }
         // Board edge.
         let g = b.shape_edge_gap(&it.shape);
-        if g < edge_c {
+        if g < edge_c - TOL {
             out.push(Violation { kind: Kind::EdgeClearance, net: it.net, other: 0, at: first_point(&it.shape), gap: g, required: edge_c });
         }
         if !b.edges.is_empty() && !b.inside(first_point(&it.shape)) {
@@ -192,7 +195,7 @@ pub fn check(obs: &Obstacles, tracks: &[Track], vias: &[NewVia]) -> Vec<Violatio
         let hole = Shape::circle(v.pos, v.drill / 2.0);
         for (_, h) in &obs.holes {
             let g = hole.gap(h);
-            if g < r.min_hole_to_hole {
+            if g < r.min_hole_to_hole - TOL {
                 out.push(Violation { kind: Kind::HoleToHole, net: v.net, other: 0, at: v.pos, gap: g, required: r.min_hole_to_hole });
             }
         }
@@ -225,7 +228,7 @@ pub fn check(obs: &Obstacles, tracks: &[Track], vias: &[NewVia]) -> Vec<Violatio
                     continue;
                 }
                 let g = a.shape.gap(&bb.shape);
-                if g < req {
+                if g < req - TOL {
                     out.push(Violation { kind: Kind::Clearance, net: a.net, other: bb.net, at: first_point(&a.shape), gap: g, required: req });
                 }
             }
@@ -234,7 +237,7 @@ pub fn check(obs: &Obstacles, tracks: &[Track], vias: &[NewVia]) -> Vec<Violatio
     for (i, v) in vias.iter().enumerate() {
         for w in &vias[i + 1..] {
             let g = v.pos.dist(w.pos) - v.drill / 2.0 - w.drill / 2.0;
-            if g < r.min_hole_to_hole {
+            if g < r.min_hole_to_hole - TOL {
                 out.push(Violation { kind: Kind::HoleToHole, net: v.net, other: w.net, at: v.pos, gap: g, required: r.min_hole_to_hole });
             }
         }
