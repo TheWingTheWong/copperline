@@ -608,7 +608,8 @@ impl<'a> Router<'a> {
                     // Zero-radius polygons report a gap of exactly 0 inside, so test `<= 0`.
                     let inside = pd.shapes.iter().any(|sh| sh.point_gap(q) <= -1e-9 || (sh.radius == 0.0 && sh.point_gap(q) <= 0.0));
                     let d = q.dist(anchor);
-                    let gap = pd.gap_to(&Shape::circle(q, 0.0));
+                    // Signed: depth inside the pad is negative (rim cells are kept in full).
+                    let gap = pd.shapes.iter().map(|sh| crate::raster::signed_gap(sh, q)).fold(f64::INFINITY, f64::min);
                     if !inside && gap > reach {
                         continue;
                     }
@@ -617,13 +618,16 @@ impl<'a> Router<'a> {
             }
             // Cells inside the pad first, then the closest to the pad edge.
             cand.sort_by(|a, b| b.0.cmp(&a.0).then(a.2.partial_cmp(&b.2).unwrap()).then(a.1.partial_cmp(&b.1).unwrap()));
-            // Big pads on fine grids have tens of thousands of interior cells; an even
-            // sample of 256 keeps the search small and the target encoding in range.
-            let n_in = cand.iter().filter(|c| c.0).count();
-            let stride = n_in.div_ceil(256).max(1);
+            // Big pads on fine grids have tens of thousands of interior cells. Paths enter
+            // through the rim, so keep every cell within 2.5 steps of the pad edge and an
+            // even sample of 32 deeper ones (via-in-pad); this also keeps the target
+            // encoding in range.
+            let rim = -2.5 * gr.g;
+            let n_deep = cand.iter().filter(|c| c.0 && c.2 < rim).count();
+            let stride = n_deep.div_ceil(32).max(1);
             let mut k_in = 0usize;
             cand.retain(|c| {
-                if !c.0 {
+                if !c.0 || c.2 >= rim {
                     return true;
                 }
                 k_in += 1;

@@ -63,7 +63,7 @@ impl Image {
 
 /// Signed distance to the shape's boundary (negative inside), so polygon interiors get
 /// full coverage and their edges are anti-aliased.
-fn signed_gap(s: &Shape, q: P) -> f64 {
+pub fn signed_gap(s: &Shape, q: P) -> f64 {
     if let Core::Poly(pts) = &s.core {
         if pts.len() >= 3 && point_in_poly(q, pts) {
             let d = (0..pts.len()).map(|i| point_seg_dist(q, pts[i], pts[(i + 1) % pts.len()])).fold(f64::INFINITY, f64::min);
