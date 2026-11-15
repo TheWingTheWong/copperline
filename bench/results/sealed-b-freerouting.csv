@@ -66,3 +66,10 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0331_Planet_Vocab,freerouting,,ok,1,0,0,0,,97.489,8.459,136,0,609.356
 0332_Hardware_Playground_wifi_lights,freerouting,,ok,0,4,0,0,,541.275,8.025,211,4,581.416
 0335_MAVRIC_Hardware_ArduinoPracticeBoard,freerouting,,ok,0,1,0,0,,72.574,5.254,284,11,752.132
+0342_hardware-designs_cc430-debug-board,freerouting,,timeout,0,,,0,,1800,,,,
+0343_clock_lcdb4,freerouting,,ok,1,0,0,0,,66.123,9.653,344,14,1331.155
+0345_Paperino_HW_paperino_module,freerouting,,ok,0,1,0,0,,116.403,5.394,261,14,435.732
+0348_Eggbot-Spherebot-polargraph-Controller_eggbot-spherebot-polargraph-controller,freerouting,,ok,1,0,0,0,,55.434,11.278,240,5,1285.943
+0353_RC2014_RC2014 IDE,freerouting,,ok,1,0,0,0,,108.21,13.147,272,7,1389.338
+0354_rc2014_bank_switcher_z80_cpm_mmu,freerouting,,ok,1,0,0,0,,503.38,26.364,248,4,1115.984
+0355_imfr-schematics_Telescopio,freerouting,,ok,1,0,0,0,,54.354,22.07,216,0,1458.122

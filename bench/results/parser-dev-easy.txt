@@ -1,1 +1,13 @@
-dev-easy: 3 boards, 73 pads checked, 0 boards with a pad where KiCad copper lies outside ours
+dev-easy: 96 boards, 2493 pads checked, 4 boards with a pad where KiCad copper lies outside ours
+0022_OpenVNAVI_motor unit: checked 13 pads, 1 mismatches
+    missing pad ('Q1', '3', 160.591, 71.12)
+0065_DiscoDanceFloorV1_BusTerminator: checked 21 pads, 6 mismatches
+    missing pad ('R2', '1', 164.91, 90.808)
+    missing pad ('U1', '1', 160.38, 90.808)
+    missing pad ('U1', '5', 162.58, 90.808)
+    missing pad ('J1', '3', 151.828, 89.853)
+    missing pad ('J1', '4', 149.288, 91.123)
+0084_kitspace__autosave-nunchuk_breakout: checked 36 pads, 1 mismatches
+    missing pad ('R5', '2', 120.0, 102.576)
+0086_BB-PWR-8009_BB-PWR-8009_revA: checked 28 pads, 1 mismatches
+    missing pad ('L1', '1', 17.209, 23.108)

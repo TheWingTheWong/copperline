@@ -1,0 +1,11 @@
+board,router,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
+0400_laptimer58_Chickadee,copperline,,ok,1,0,0,0,,4.889,0.0,305,34,605.465
+0423_induction-hob_temperature-sender,copperline,,ok,1,0,0,0,,5.446,0.0,324,37,511.769
+0448_uedaino_uedaino,copperline,,ok,1,0,0,0,,24.107,0.0,496,55,1266.554
+0473_data-manager_data-manager,copperline,,ok,0,1,0,0,,156.817,0.0,509,52,1087.477
+0496_kitspace_f-91w,copperline,,ok,0,9,0,0,,177.727,0.0,478,61,495.145
+0520_RGBMatrixPanelCPLD-PhotonBackpack_RGBMatrixPanel_CPLD_negative,copperline,,ok,1,0,0,0,,8.964,0.0,476,36,956.321
+0546_ozinverter_ozinverterkicad,copperline,,ok,1,0,0,0,,4.277,0.0,655,8,1927.456
+0571_Brushless_ESC_Brushless_ESC,copperline,,ok,1,0,0,0,,9.185,0.0,646,62,959.358
+0599_RGBMatrixPanelCPLD-PhotonBackpack_RGBMatrixPanel_CPLD,copperline,,ok,1,0,0,0,,66.452,0.0,726,66,1498.318
+0626_TOBS_HybridChargeController,copperline,,ok,0,1,0,0,,113.718,0.0,840,68,1949.369

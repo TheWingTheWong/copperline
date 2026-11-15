@@ -168,6 +168,14 @@ def main():
         with open(out) as f:
             done = {r["board"]: r for r in csv.DictReader(f)}
     rows = dict(done)
+    if not a.force and a.shard:
+        # Boards finished by any other run of this split/router (another shard, or the
+        # unsharded CSV) are skipped too.
+        for f in RESULTS.glob(f"{a.split}-{a.router}*.csv"):
+            if f != out and "-v2" not in f.name:
+                with open(f) as fh:
+                    for r in csv.DictReader(fh):
+                        done.setdefault(r["board"], r)
     for i, n in enumerate(names):
         if n in done:
             continue

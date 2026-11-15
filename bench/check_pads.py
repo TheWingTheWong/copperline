@@ -44,12 +44,17 @@ def gap(q, shape):
 
 def main():
     kicad = json.load(open(sys.argv[1]))
-    ours = {(p["ref"], p["num"], round(p["x"], 3), round(p["y"], 3)): p for p in json.load(open(sys.argv[2]))}
+    # Match on reference + pad number + nearest position (KiCad works in integer nm, so
+    # rotated positions differ from ours in the last digits).
+    by_id = {}
+    for p in json.load(open(sys.argv[2])):
+        by_id.setdefault((p["ref"], p["num"]), []).append(p)
     bad = 0
     checked = 0
     for k in kicad:
         key = (k["ref"], k["num"], round(k["x"], 3), round(k["y"], 3))
-        o = ours.get(key)
+        cands = [p for p in by_id.get((k["ref"], k["num"]), []) if math.dist((p["x"], p["y"]), (k["x"], k["y"])) < 0.005]
+        o = min(cands, key=lambda p: math.dist((p["x"], p["y"]), (k["x"], k["y"]))) if cands else None
         if o is None:
             print("missing pad", key)
             bad += 1
