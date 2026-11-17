@@ -5,3 +5,4 @@ bench/data/
 *.dsn
 .publish.json
 .DS_Store
+__pycache__/

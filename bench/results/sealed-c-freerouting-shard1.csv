@@ -8,3 +8,4 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0416_kitspace_beehive,freerouting,,ok,1,0,0,0,,74.279,12.503,238,6,1726.627
 0418_AVR-ZIF-Programmer_AVR-ZIF-Prog,freerouting,,ok,1,0,0,0,,338.512,46.508,358,3,1499.575
 0424_rf-biscuit_rf_biscuit,freerouting,,timeout,0,,,0,,1800,,,,
+0431_bldc-gimbal-1d_r1_gimbal-board,freerouting,,ok,1,0,0,0,,213.52,22.746,413,27,976.622
