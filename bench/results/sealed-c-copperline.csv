@@ -81,3 +81,8 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0617_divergence_meter_dm_nixiebrd,copperline,,ok,0,4,0,0,,149.033,0.0,1202,79,3751.987
 0624_elbsupply_elbsupply,copperline,,ok,0,1,0,0,,99.713,0.0,946,109,2180.213
 0627_divergence_meter_dm_control,copperline,,ok,0,1,0,0,,394.999,0.0,913,79,1474.51
+0628_digital_clock_led_clock_3_and_4_digit,copperline,,ok,0,3,0,0,,478.381,0.0,940,45,3780.155
+0629_Hardware_Playground_BL_PCB_latest,copperline,,ok,1,0,0,0,,110.239,0.0,743,37,1519.751
+0639_pwm-2420-lus_pwm-2420-lus,copperline,,ok,0,13,0,0,,267.107,0.0,1102,118,2320.974
+0648_zx-sizif-128_sizif128,copperline,,ok,0,32,0,0,,414.899,0.0,2939,313,7617.112
+0655_ADC-PCM4202-SE_ADC-PCM4202-SE,copperline,,ok,0,26,0,0,,723.37,0.0,1049,83,1780.562
