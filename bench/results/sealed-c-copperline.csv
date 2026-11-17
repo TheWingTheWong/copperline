@@ -25,3 +25,4 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0442_MAPone_MAP_append,copperline,,ok,1,0,0,0,,15.669,0.0,454,11,809.063
 0444_audprog_audprog_v2,copperline,,ok,1,0,0,0,,13.27,0.0,410,37,635.325
 0447_thegrid_thegrid,copperline,,ok,1,0,0,0,,17.11,0.0,411,5,1103.11
+0450_hw_trials_demo,copperline,,ok,1,0,0,0,,7.462,0.0,400,27,902.624
