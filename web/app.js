@@ -102,6 +102,10 @@ function showStats() {
 }
 
 function route(pcb, pro, name) {
+  // A fresh worker per board: a route still running for the previous board is dropped, so
+  // its result can never be shown or downloaded under the new board's name.
+  worker.terminate();
+  worker = new Worker("worker.js");
   fileName = name; clearInterval(timer);
   statusEl.textContent = "Routing..."; replayBtn.disabled = dlBtn.disabled = scrub.disabled = true;
   worker.onmessage = (e) => {
@@ -124,7 +128,7 @@ async function loadExample(i) {
 async function openFiles(files) {
   const list = [...files];
   const pcbF = list.find((f) => f.name.endsWith(".kicad_pcb"));
-  if (!pcbF) { statusEl.textContent = "Pick a .kicad_pcb file (KiCad 7-9 format)."; return; }
+  if (!pcbF) { statusEl.textContent = "Pick a .kicad_pcb file saved by KiCad 9."; return; }
   const proF = list.find((f) => f.name.endsWith(".kicad_pro"));
   route(await pcbF.text(), proF ? await proF.text() : "", pcbF.name.replace(".kicad_pcb", ""));
 }
