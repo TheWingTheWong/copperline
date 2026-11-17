@@ -108,11 +108,19 @@ for (a, b), (c, d) in [((X0, Y0), (X0 + W, Y0)), ((X0 + W, Y0), (X0 + W, Y0 + H)
     out.append(f'\t(gr_line\n\t\t(start {a} {b})\n\t\t(end {c} {d})\n\t\t(stroke\n\t\t\t(width 0.1)\n\t\t\t(type default)\n\t\t)\n\t\t(layer "Edge.Cuts")\n\t\t(uuid "{U()}")\n\t)\n')
 out.append(")\n")
 (HERE / "mcu48.kicad_pcb").write_text("".join(out))
+def netclass(name, clearance, track, via, drill, priority):
+    return {"name": name, "clearance": clearance, "track_width": track, "via_diameter": via, "via_drill": drill,
+            "microvia_diameter": 0.3, "microvia_drill": 0.1, "diff_pair_gap": 0.25, "diff_pair_via_gap": 0.25,
+            "diff_pair_width": 0.2, "bus_width": 12, "wire_width": 6, "line_style": 0, "priority": priority,
+            "pcb_color": "rgba(0, 0, 0, 0.000)", "schematic_color": "rgba(0, 0, 0, 0.000)"}
+
+
+# The field set KiCad 9 writes; without net_settings.meta.version KiCad ignores the classes.
 pro = {"board": {"design_settings": {"rules": {"min_clearance": 0.15, "min_track_width": 0.15, "min_copper_edge_clearance": 0.3,
                                                 "min_hole_clearance": 0.25, "min_hole_to_hole": 0.25, "min_via_diameter": 0.5, "min_through_hole": 0.3}}},
-       "meta": {"filename": "mcu48.kicad_pro", "version": 1},
-       "net_settings": {"classes": [{"name": "Default", "clearance": 0.15, "track_width": 0.2, "via_diameter": 0.6, "via_drill": 0.3},
-                                    {"name": "Power", "clearance": 0.15, "track_width": 0.3, "via_diameter": 0.7, "via_drill": 0.35}],
+       "meta": {"filename": "mcu48.kicad_pro", "version": 3},
+       "net_settings": {"classes": [netclass("Default", 0.15, 0.2, 0.6, 0.3, 2147483647), netclass("Power", 0.15, 0.3, 0.7, 0.35, 0)],
+                        "meta": {"version": 4}, "net_colors": None, "netclass_assignments": None,
                         "netclass_patterns": [{"netclass": "Power", "pattern": "GND"}, {"netclass": "Power", "pattern": "+3V3"}]}}
 (HERE / "mcu48.kicad_pro").write_text(json.dumps(pro, indent=2) + "\n")
 print(f"{len(nets) - 1} nets, {len(fps)} footprints")
