@@ -17,3 +17,6 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0418_AVR-ZIF-Programmer_AVR-ZIF-Prog,copperline,,ok,1,0,0,0,,9.707,0.0,384,15,1273.11
 0420_rufs_aprs_tracker,copperline,,ok,1,0,0,0,,7.143,0.0,351,15,674.52
 0424_rf-biscuit_rf_biscuit,copperline,,ok,1,0,0,0,,8.886,0.0,193,0,141.188
+0429_R1007_R1007,copperline,,ok,1,0,0,0,,52.137,0.0,301,23,650.46
+0431_bldc-gimbal-1d_r1_gimbal-board,copperline,,ok,1,0,0,0,,26.368,0.0,361,32,772.794
+0435_filament_extruder_extruder,copperline,,ok,1,0,0,0,,8.051,0.0,343,19,633.627
