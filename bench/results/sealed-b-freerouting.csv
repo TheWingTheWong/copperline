@@ -80,3 +80,8 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0372_retrocon_bbb-adapter,freerouting,,ok,1,0,0,0,,98.546,15.901,234,3,937.285
 0374_light-painting-wand_light-wand,freerouting,,timeout,0,,,0,,1800,,,,
 0375_eurorack_headphones_eurorack_headphones,freerouting,,ok,0,1,0,0,,1168.926,17.371,260,6,900.754
+0377_Hardware_Playground_pro_mini,freerouting,,ok,1,0,0,0,,191.637,10.963,270,6,506.328
+0379_kicad-esp8266-led-shld_ESP8266_LED_shld,freerouting,,ok,1,0,0,0,,113.836,19.998,328,8,1064.619
+0381_retrocon_driver_board,freerouting,,ok,1,0,0,0,,120.215,29.078,229,4,883.047
+0385_rgb-led_rgb-led-v2,freerouting,,ok,1,0,0,0,,86.206,18.757,186,2,979.332
+0386_onion2-breakout_onion2 breakout,freerouting,,ok,1,0,0,0,,94.012,15.219,252,6,665.502

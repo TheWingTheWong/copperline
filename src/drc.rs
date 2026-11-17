@@ -203,8 +203,11 @@ pub fn check(obs: &Obstacles, tracks: &[Track], vias: &[NewVia]) -> Vec<Violatio
     // New items against each other (different nets), bucketed by a coarse grid.
     let cell = 1.0f64;
     let mut buckets: std::collections::HashMap<(i64, i64, usize), Vec<usize>> = Default::default();
+    // Inflate by the largest clearance any new item asks for, so two items closer than
+    // that always share a bucket even when they sit on opposite sides of a bucket edge.
+    let reach = items.iter().map(|it| clear(it.net)).fold(0.0f64, f64::max);
     for (i, it) in items.iter().enumerate() {
-        let bb = it.bbox;
+        let bb = it.bbox.inflate(reach);
         for x in (bb.min.x / cell).floor() as i64..=(bb.max.x / cell).floor() as i64 {
             for y in (bb.min.y / cell).floor() as i64..=(bb.max.y / cell).floor() as i64 {
                 buckets.entry((x, y, it.layer)).or_default().push(i);

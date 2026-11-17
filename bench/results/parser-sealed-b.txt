@@ -1,4 +1,1 @@
-sealed-b: 86 boards, 6605 pads checked, 1 boards with a pad where KiCad copper lies outside ours
-0269_m2-electronics_m2pa-m3mount: checked 105 pads, 2 mismatches
-    pad ('IC1', '2', 139.0, 86.7) KiCad copper extends 0.9012 mm beyond ours
-    pad ('IC1', '2', 139.0, 86.7) KiCad copper extends 0.9012 mm beyond ours
+sealed-b: 86 boards, 6605 pads checked, 0 boards with a pad where KiCad copper lies outside ours

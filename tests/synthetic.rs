@@ -164,3 +164,21 @@ fn pth_pad_listing_only_front_copper_is_on_every_layer() {
     let b = Board::parse(text).unwrap();
     assert_eq!(b.pads[0].layers, vec![0, 1]);
 }
+
+#[test]
+fn drc_sees_tracks_on_opposite_sides_of_a_bucket_edge() {
+    // Found by KiCad on a real board: two new tracks 0.1493 mm apart were never compared
+    // because they fell into different 1 mm buckets.
+    use copperline::drc::Track;
+    use copperline::geom::p;
+    let text = "(kicad_pcb\n\t(version 20241229)\n\t(layers\n\t\t(0 \"F.Cu\" signal)\n\t\t(2 \"B.Cu\" signal)\n\t)\n\t(net 0 \"\")\n\t(net 1 \"A\")\n\t(net 2 \"B\")\n)\n";
+    let b = Board::parse(text).unwrap();
+    let r = rules(0.15, 0.2);
+    let obs = Obstacles::new(&b, &r);
+    // Edges at x = 0.9 and x = 1.2: gap 0.3 - 0.2 = 0.1 < 0.15, across the x = 1.0 bucket edge.
+    let t = [
+        Track { net: 1, layer: 0, a: p(0.8, 0.5), b: p(0.8, 5.0), width: 0.2 },
+        Track { net: 2, layer: 0, a: p(1.1, 0.5), b: p(1.1, 5.0), width: 0.2 },
+    ];
+    assert!(!drc::check(&obs, &t, &[]).is_empty());
+}

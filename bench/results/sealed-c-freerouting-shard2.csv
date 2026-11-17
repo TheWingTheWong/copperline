@@ -1,6 +1,8 @@
 board,router,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
 0395_Arduino_Lipo_Storage_Discharger_Lipo_Storage_Discharger,freerouting,,ok,0,1,0,0,,960.089,10.419,280,5,1047.22
+0403_Mini-Ultra-8-MHz_RS-MINI-ULTRA-8M,freerouting,,ok,0,0,3,0,clearance:3,151.525,13.572,333,18,485.219
 0406_QRPCard_QRPCard,freerouting,,ok,1,0,0,0,,91.278,11.445,309,12,933.715
+0409_nextbusclock_NextBusClockV1,freerouting,,ok,1,0,0,0,,125.625,28.61,362,5,1568.236
 0417_Open-Source-Power-Supply_PowerSupply_PCB_backup,freerouting,,ok,1,0,0,0,,129.496,11.408,307,5,1063.422
 0435_filament_extruder_extruder,freerouting,,ok,1,0,0,0,,129.512,15.298,346,12,866.087
 0442_MAPone_MAP_append,freerouting,,timeout,0,,,0,,1800,,,,
