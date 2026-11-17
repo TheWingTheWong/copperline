@@ -22,3 +22,5 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0577_Shift-out-32-HC595_Shift-out,freerouting,,timeout,0,,,0,,600.0,,,,
 0590_Mechaduino-DR_Mechaduino DR 1.01,freerouting,,timeout,0,,,0,,600.0,,,,
 0598_PDB_OSD_HARDWARE_Quadcopter Power Board,freerouting,,timeout,0,,,0,,600.0,,,,
+0603_f.60_keyboard,freerouting,,timeout,0,,,0,,600.0,,,,
+0612_balena-rover-wide-hat_resin-rover,freerouting,,ok,1,0,0,0,,471.832,17.493,1013,27,2079.582

@@ -1,0 +1,7 @@
+board,router,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
+0389_kitspace_bomanz,freerouting,,timeout,0,,,0,,600.0,,,,
+0396_kitspace_ss_relay,freerouting,,ok,1,0,0,0,,36.571,8.188,297,4,1289.061
+0404_Omega2-mini-dock_Omega2 mini-dock,freerouting,,ok,1,0,0,0,,67.014,8.947,253,1,566.38
+0407_MAGFest-2017-Swadges_magfest_badges,freerouting,,ok,1,0,0,0,,131.001,12.368,372,22,1283.658
+0413_bmw-ibus-bluetooth_bmw_bt_cdcemu_analog,freerouting,,ok,1,0,0,0,,87.904,13.49,292,3,396.158
+0418_AVR-ZIF-Programmer_AVR-ZIF-Prog,freerouting,,ok,1,0,0,0,,95.274,14.812,335,1,1528.126

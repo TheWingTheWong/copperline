@@ -27,3 +27,5 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0606_elec_power_dispatch,freerouting,,timeout,0,,,0,,600.0,,,,
 0616_MixSID_mixsid,freerouting,,timeout,0,,,0,,600.0,,,,
 0627_divergence_meter_dm_control,freerouting,,timeout,0,,,0,,600.0,,,,
+0639_pwm-2420-lus_pwm-2420-lus,freerouting,,timeout,0,,,0,,600.0,,,,
+0657_mppt-2420-hpx_mppt-2420-hpx,freerouting,,timeout,0,,,0,,600.0,,,,
