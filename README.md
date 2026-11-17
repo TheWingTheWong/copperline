@@ -94,7 +94,12 @@ board on an 8 GB Apple M-series laptop, with the two routers running side by sid
 Freerouting this includes JVM start (about 1 s). DSN export and SES import are not
 counted, and KiCad's DRC is not counted for either router. Both routers ran side by side on
 a loaded machine, so absolute times will differ on yours; the ratio is the useful part.
-Freerouting 2.1.0 was run once per board with its default seed. PCBWorld also reports a best-of-4-seeds
+Freerouting 2.1.0 was run once per board with its default seed. The cap was PCBWorld's
+1800 s per board until, part way through the hard tier, the data showed Freerouting had
+never returned a clean board after 600 s (0 of 15 runs past that point, and 2 of 15 between
+300 and 600 s). The remaining hard and test boards then ran with a 600 s cap
+(`bench/run.py --cap 600`), which kept the run inside a week on one laptop. Timeouts count
+as failures either way. PCBWorld also reports a best-of-4-seeds
 number, which this run does not attempt.
 
 ### A note on the benchmark's splits
