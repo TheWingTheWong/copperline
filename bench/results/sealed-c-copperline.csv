@@ -8,3 +8,12 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0404_Omega2-mini-dock_Omega2 mini-dock,copperline,,ok,1,0,0,0,,8.968,0.0,249,5,441.78
 0405_dust_sensor_dust_sensor,copperline,,ok,0,2,0,0,,205.523,0.0,559,73,1233.603
 0406_QRPCard_QRPCard,copperline,,ok,1,0,0,0,,15.847,0.0,298,25,697.026
+0407_MAGFest-2017-Swadges_magfest_badges,copperline,,ok,1,0,0,0,,57.403,0.0,392,33,1038.941
+0408_LoRaCatTrack_GPSLoRa,copperline,,ok,1,0,0,0,,17.534,0.0,349,24,1037.854
+0409_nextbusclock_NextBusClockV1,copperline,,ok,1,0,0,0,,21.518,0.0,446,17,1366.102
+0413_bmw-ibus-bluetooth_bmw_bt_cdcemu_analog,copperline,,ok,1,0,0,0,,3.827,0.0,226,10,281.36
+0416_kitspace_beehive,copperline,,ok,1,0,0,0,,25.933,0.0,405,13,1538.522
+0417_Open-Source-Power-Supply_PowerSupply_PCB_backup,copperline,,ok,1,0,0,0,,10.433,0.0,332,10,881.802
+0418_AVR-ZIF-Programmer_AVR-ZIF-Prog,copperline,,ok,1,0,0,0,,9.707,0.0,384,15,1273.11
+0420_rufs_aprs_tracker,copperline,,ok,1,0,0,0,,7.143,0.0,351,15,674.52
+0424_rf-biscuit_rf_biscuit,copperline,,ok,1,0,0,0,,8.886,0.0,193,0,141.188

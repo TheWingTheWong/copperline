@@ -156,3 +156,11 @@ fn output_keeps_the_input_byte_for_byte() {
     assert_eq!(uuids.len(), out.tracks.len() + out.vias.len());
     assert!(!uuids.iter().any(|u| text.contains(u)));
 }
+
+#[test]
+fn pth_pad_listing_only_front_copper_is_on_every_layer() {
+    // Found by KiCad on a real board: KiCad treats PTH pad copper as present on all layers.
+    let text = "(kicad_pcb\n\t(version 20241229)\n\t(layers\n\t\t(0 \"F.Cu\" signal)\n\t\t(2 \"B.Cu\" signal)\n\t)\n\t(net 0 \"\")\n\t(net 1 \"GND\")\n\t(footprint \"T:P\"\n\t\t(layer \"F.Cu\")\n\t\t(at 10 10)\n\t\t(pad \"3\" thru_hole rect\n\t\t\t(at 0 0 270)\n\t\t\t(size 2 2.5)\n\t\t\t(drill 1.016)\n\t\t\t(layers \"*.Mask\" \"F.Cu\" \"F.SilkS\")\n\t\t\t(net 1 \"GND\")\n\t\t)\n\t)\n)\n";
+    let b = Board::parse(text).unwrap();
+    assert_eq!(b.pads[0].layers, vec![0, 1]);
+}
