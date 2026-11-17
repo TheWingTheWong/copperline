@@ -41,7 +41,7 @@ fn r3(v: f64) -> f64 {
 pub fn route_json(pcb: &str, pro: &str) -> Result<Value, String> {
     let b = Board::parse(pcb)?;
     let r = if pro.trim().is_empty() { Rules::default() } else { Rules::parse(pro)? };
-    let prm = Params { snapshots: true, time_budget_s: 30.0, ..Params::default() };
+    let prm = Params { snapshots: true, time_budget_s: 60.0, ..Params::default() };
     let out = route_board(&b, &r, &prm);
     let pads: Vec<Value> = b
         .pads

@@ -466,7 +466,9 @@ impl Board {
                     let pangle = pat.and_then(|a| a.arg_num(2)).unwrap_or(0.0);
                     let ppos = tf(local);
                     let kind = item.arg_text(1).unwrap_or("smd");
-                    let cu = copper_layers_of(&layer_names(item), &self.layers);
+                    // A plated through-hole pad is copper on every layer as far as KiCad's DRC is
+                    // concerned, even when its layer list names only F.Cu.
+                    let cu = if kind == "thru_hole" { (0..self.layers.len()).collect() } else { copper_layers_of(&layer_names(item), &self.layers) };
                     let shapes = pad_shapes(item, ppos, pangle, &mut self.warnings);
                     let hole = item.child("drill").and_then(|d| {
                         let offset_free = |q: P| q.rot_kicad(pangle) + ppos;

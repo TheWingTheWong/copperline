@@ -1,0 +1,10 @@
+board,router,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
+0389_kitspace_bomanz,copperline,,ok,0,1,0,0,,264.811,0.0,326,25,654.641
+0393_boards_shift-register-demo-v2,copperline,,ok,1,0,0,0,,16.564,0.0,367,7,1013.147
+0395_Arduino_Lipo_Storage_Discharger_Lipo_Storage_Discharger,copperline,,ok,1,0,0,0,,34.528,0.0,315,14,861.143
+0396_kitspace_ss_relay,copperline,,ok,1,0,0,0,,15.913,0.0,361,19,945.907
+0397_wt-rpm_C.H.I.P,copperline,,ok,0,13,0,0,,108.534,0.0,173,4,326.66
+0403_Mini-Ultra-8-MHz_RS-MINI-ULTRA-8M,copperline,,ok,1,0,0,0,,6.9,0.0,287,22,377.552
+0404_Omega2-mini-dock_Omega2 mini-dock,copperline,,ok,1,0,0,0,,8.968,0.0,249,5,441.78
+0405_dust_sensor_dust_sensor,copperline,,ok,0,2,0,0,,205.523,0.0,559,73,1233.603
+0406_QRPCard_QRPCard,copperline,,ok,1,0,0,0,,15.847,0.0,298,25,697.026

@@ -73,3 +73,4 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0353_RC2014_RC2014 IDE,freerouting,,ok,1,0,0,0,,108.21,13.147,272,7,1389.338
 0354_rc2014_bank_switcher_z80_cpm_mmu,freerouting,,ok,1,0,0,0,,503.38,26.364,248,4,1115.984
 0355_imfr-schematics_Telescopio,freerouting,,ok,1,0,0,0,,54.354,22.07,216,0,1458.122
+0356_kitspace_ideal_diode,freerouting,,ok,0,1,0,0,,549.034,27.797,173,1,208.114

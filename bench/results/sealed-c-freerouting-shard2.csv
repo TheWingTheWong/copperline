@@ -1,0 +1,2 @@
+board,router,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
+0395_Arduino_Lipo_Storage_Discharger_Lipo_Storage_Discharger,freerouting,,ok,0,1,0,0,,960.089,10.419,280,5,1047.22
