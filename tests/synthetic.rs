@@ -182,3 +182,41 @@ fn drc_sees_tracks_on_opposite_sides_of_a_bucket_edge() {
     ];
     assert!(!drc::check(&obs, &t, &[]).is_empty());
 }
+
+/// One pad of net 1 at (5, 5) (1 x 1 mm SMD, or a 1.6 mm THT pad with a 0.8 mm hole), on a
+/// 10 x 10 mm board.
+fn one_pad_board(tht: bool) -> Board {
+    let pads = [Pad { x: 5.0, y: 5.0, w: if tht { 1.6 } else { 1.0 }, h: if tht { 1.6 } else { 1.0 }, tht, net: 1 }];
+    Board::parse(&board_text(10.0, 10.0, &pads, 2)).unwrap()
+}
+
+#[test]
+fn drc_track_to_pad_clearance_is_exact() {
+    use copperline::drc::Track;
+    use copperline::geom::p;
+    let b = one_pad_board(false);
+    let r = rules(0.2, 0.2);
+    let obs = Obstacles::new(&b, &r);
+    // Pad edge at x = 5.5; track of width 0.2 centred at x: gap = x - 0.1 - 5.5.
+    let at = |x: f64, net: u32| [Track { net, layer: 0, a: p(x, 3.0), b: p(x, 7.0), width: 0.2 }];
+    assert!(!drc::check(&obs, &at(5.79, 2), &[]).is_empty(), "gap 0.19 < 0.2 must fail");
+    assert!(drc::check(&obs, &at(5.8, 2), &[]).is_empty(), "gap exactly 0.2 is legal");
+    assert!(drc::check(&obs, &at(5.6, 1), &[]).is_empty(), "same net may touch");
+    assert!(drc::check(&obs, &at(5.6, 2), &[]).len() >= 1);
+}
+
+#[test]
+fn drc_hole_and_edge_clearance() {
+    use copperline::drc::Track;
+    use copperline::geom::p;
+    let b = one_pad_board(true);
+    let r = rules(0.2, 0.2);
+    let obs = Obstacles::new(&b, &r);
+    // Bottom-layer track of another net through the THT pad: copper and hole both violate.
+    let t = [Track { net: 2, layer: 1, a: p(3.0, 5.0), b: p(7.0, 5.0), width: 0.2 }];
+    assert!(!drc::check(&obs, &t, &[]).is_empty());
+    // Copper-to-edge clearance is 0.3 in these rules: 0.25 from the edge fails, 0.45 passes.
+    let edge = |y: f64| [Track { net: 2, layer: 0, a: p(1.0, y), b: p(4.0, y), width: 0.2 }];
+    assert!(!drc::check(&obs, &edge(0.35), &[]).is_empty());
+    assert!(drc::check(&obs, &edge(0.45), &[]).is_empty());
+}
