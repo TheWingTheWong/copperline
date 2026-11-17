@@ -97,10 +97,11 @@ def main():
             f"{statistics.median(ta):.1f} / {q(ta, 0.9):.1f} | {statistics.median(tb):.1f} / {q(tb, 0.9):.1f} | {both} | {ka - both} | {kb - both} |")
         chart.append((name, n, ka / n, wa, kb / n, wb, statistics.median(ta), statistics.median(tb)))
     # Failure classes.
-    lines += ["", "## Why boards are not clean", "", "| router | tier | unconnected only | DRC violations | timeout / error |", "|---|---|---:|---:|---:|"]
+    lines += ["", "## Why boards are not clean (paired boards)", "", "| router | tier | unconnected only | DRC violations | timeout / error |", "|---|---|---:|---:|---:|"]
     for name, members in tiers():
+        both = set(rows_for(members, "copperline")) & set(rows_for(members, "freerouting"))
         for router in ROUTERS:
-            rs = rows_for(members, router)
+            rs = {k: v for k, v in rows_for(members, router).items() if k in both}
             bad = [r for r in rs.values() if r["clean"] != "1"]
             unc = sum(1 for r in bad if r["status"] == "ok" and r["violations"] in ("0", ""))
             vio = sum(1 for r in bad if r["status"] == "ok" and r["violations"] not in ("0", ""))
@@ -109,13 +110,16 @@ def main():
     # Violation types.
     types = {}
     for name, members in tiers():
+        both = set(rows_for(members, "copperline")) & set(rows_for(members, "freerouting"))
         for router in ROUTERS:
-            for r in rows_for(members, router).values():
+            for k, r in rows_for(members, router).items():
+                if k not in both:
+                    continue
                 for part in filter(None, r.get("violation_types", "").split(";")):
                     t, k = part.split(":")
                     types[(router, t)] = types.get((router, t), 0) + int(k)
     if types:
-        lines += ["", "## DRC violation types (all held-out and easy boards)", "", "| router | type | count |", "|---|---|---:|"]
+        lines += ["", "## DRC violation types (paired boards, all tiers)", "", "| router | type | count |", "|---|---|---:|"]
         for (router, t), k in sorted(types.items()):
             lines.append(f"| {router} | {t} | {k} |")
     # Development pools.

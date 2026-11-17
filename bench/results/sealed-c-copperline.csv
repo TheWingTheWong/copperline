@@ -42,3 +42,4 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0504_TeensyProtoboard_TeensyProtoboard,copperline,,ok,1,0,0,0,,6.132,0.0,288,1,388.381
 0507_Dekada_dekada_TopoR_curves,copperline,,ok,1,0,0,0,,1.402,0.0,229,0,235.639
 0508_kitspace_sympetrum-v2%20NFF1.1,copperline,,ok,1,0,0,0,,50.064,0.0,486,33,747.998
+0512_Protoboard-DIP-for-CHIP_chip-dip-protoboard,copperline,,ok,1,0,0,0,,90.806,0.0,503,1,535.398
