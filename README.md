@@ -206,7 +206,8 @@ and the output must strip back to the input byte for byte.
 On real boards, every result in `bench/results/` was scored by `kicad-cli`. Disagreements
 between copperline's DRC and KiCad's are counted in the results above. The pad parser is also checked directly against KiCad: `bench/check_parser.py`
 has pcbnew dump every pad's own copper polygon and requires each vertex to lie inside
-copperline's shape (`bench/results/parser-*.txt`).
+copperline's shape (`bench/results/parser-*.txt`). Over the development pools and both
+sealed sets (473 boards, 45,197 pads), no KiCad pad copper lies outside copperline's shapes.
 
 ## Reproducing the benchmark
 

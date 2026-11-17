@@ -4,6 +4,7 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0406_QRPCard_QRPCard,freerouting,,ok,1,0,0,0,,91.278,11.445,309,12,933.715
 0409_nextbusclock_NextBusClockV1,freerouting,,ok,1,0,0,0,,125.625,28.61,362,5,1568.236
 0417_Open-Source-Power-Supply_PowerSupply_PCB_backup,freerouting,,ok,1,0,0,0,,129.496,11.408,307,5,1063.422
+0424_rf-biscuit_rf_biscuit,freerouting,,timeout,0,,,0,,600.0,,,,
 0435_filament_extruder_extruder,freerouting,,ok,1,0,0,0,,129.512,15.298,346,12,866.087
 0442_MAPone_MAP_append,freerouting,,timeout,0,,,0,,1800,,,,
 0450_hw_trials_demo,freerouting,,ok,1,0,0,0,,132.668,16.802,396,12,1167.048

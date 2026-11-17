@@ -74,3 +74,5 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0602_PoEPi-hardware__autosave-pizero-poe,copperline,,ok,0,1,0,0,,313.288,0.0,783,71,943.938
 0603_f.60_keyboard,copperline,,ok,1,0,0,0,,87.412,0.0,780,15,3766.169
 0605_recalbox-gpio-board_board,copperline,,ok,0,36,0,0,,1058.275,0.0,633,60,2506.937
+0606_elec_power_dispatch,copperline,,ok,0,4,0,0,,510.054,0.0,684,47,1000.642
+0612_balena-rover-wide-hat_resin-rover,copperline,,ok,0,3,0,0,,90.911,0.0,824,81,1459.585
