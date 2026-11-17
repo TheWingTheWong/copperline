@@ -101,6 +101,7 @@ def main():
     art = artifacts()
     per_board = ["| tier | board | copperline | Freerouting | copperline s | Freerouting s |", "|---|---|---|---|---:|---:|"]
     chart = []
+    tier_stats = {}
     for name, members in tiers():
         a = rows_for(members, "copperline")
         b = rows_for(members, "freerouting")
@@ -127,8 +128,9 @@ def main():
             f"| {name} | {n} | {ka}/{n} = {ka / n:.2f} [{wa[0]:.2f}, {wa[1]:.2f}] | {kb}/{n} = {kb / n:.2f} [{wb[0]:.2f}, {wb[1]:.2f}] | {kf}/{n} = {kf / n:.2f} [{wf[0]:.2f}, {wf[1]:.2f}] | "
             f"{statistics.median(ta):.1f} / {q(ta, 0.9):.1f} | {statistics.median(tb):.1f} / {q(tb, 0.9):.1f} | {both} | {ka - both} | {kb - both} |")
         chart.append((name, n, ka / n, wa, kb / n, wb, statistics.median(ta), statistics.median(tb)))
+        tier_stats[name] = dict(n=n, ka=ka, kb=kb, kf=kf, ma=statistics.median(ta), mb=statistics.median(tb))
     lines += ["", "## copperline on every board of each tier (not only those Freerouting finished)", "",
-              "| tier | boards routed | clean | KiCad DRC errors on copperline's copper |", "|---|---:|---:|---:|"]
+              "| tier | boards routed | clean | boards where KiCad found errors in copperline's copper |", "|---|---:|---:|---:|"]
     for name, members in tiers():
         a = rows_for(members, "copperline")
         if not a:
@@ -136,7 +138,7 @@ def main():
         k = sum(int(r["clean"]) for r in a.values())
         v = sum(1 for r in a.values() if r["violations"] not in ("", "0"))
         w = wilson(k, len(a))
-        lines.append(f"| {name} | {len(a)} | {k}/{len(a)} = {k / len(a):.2f} [{w[0]:.2f}, {w[1]:.2f}] | {v} boards |")
+        lines.append(f"| {name} | {len(a)} | {k}/{len(a)} = {k / len(a):.2f} [{w[0]:.2f}, {w[1]:.2f}] | {v} |")
     # DRC agreement: copperline never writes copper that fails its own DRC, so every KiCad
     # error on its output is a miss of copperline's checker.
     allrows = {}
@@ -156,6 +158,7 @@ def main():
               "PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) reports mean DRC violations 0.09 on fully routed boards and routability 0.98 (mean fraction of nets routed). Clean-pass is not published, so this compares what can be compared:", "",
               f"- our single-seed run on test-a: {len(full)}/{len(fr)} boards fully routed, mean DRC violations on those {drv:.2f}",
               f"- clean-pass of our run: {sum(int(r['clean']) for r in fr.values())}/{len(fr)}", ""]
+    readme_blocks(lines, tier_stats, missed, routed)
     # Failure classes.
     lines += ["", "## Why boards are not clean (paired boards)", "", "| router | tier | unconnected only | DRC violations | timeout / error |", "|---|---|---:|---:|---:|"]
     for name, members in tiers():
@@ -198,6 +201,37 @@ def main():
     print("\n".join(lines))
     if chart:
         write_chart(chart)
+
+
+def readme_blocks(lines, ts, missed, routed):
+    """Write the headline and the results tables into README.md between markers."""
+    readme = HERE.parent / "README.md"
+    if not readme.exists():
+        return
+    text = readme.read_text()
+    m, h = ts.get("medium, held out"), ts.get("hard, held out")
+    if not (m and h):
+        return
+    allc = {}
+    for name, members in tiers():
+        allc[name] = rows_for(members, "copperline")
+    hard_all = allc["hard, held out"]
+    hk = sum(int(r["clean"]) for r in hard_all.values())
+    slow = max(float(r["route_s"] or 0) for name in ("medium, held out", "hard, held out") for r in allc[name].values())
+    headline = (f"On {m['n']} medium and {h['n']} hard open-hardware boards it never saw during development, scored by "
+                f"KiCad 9's own DRC on the same input files, copperline routes **{m['ka'] / m['n']:.0%} of the medium boards and "
+                f"{h['ka'] / h['n']:.0%} of the hard ones clean, against Freerouting's {m['kb'] / m['n']:.0%} and {h['kb'] / h['n']:.0%}**, "
+                f"with a median of {m['ma']:.1f} s and {h['ma']:.0f} s per board against {m['mb']:.0f} s and {h['mb']:.0f} s.")
+    start, end = "<!-- headline:start -->", "<!-- headline:end -->"
+    if start in text:
+        text = text[: text.index(start) + len(start)] + "\n" + headline + "\n" + text[text.index(end):]
+    body = "\n".join(lines[lines.index("| tier | boards | copperline clean | Freerouting clean | Freerouting, conversion artifacts forgiven | copperline median / p90 s | Freerouting median / p90 s | both clean | only copperline | only Freerouting |"):])
+    start, end = "<!-- results:start -->", "<!-- results:end -->"
+    extra = (f"\n\nThe slowest held-out copperline run took {slow:.0f} s. Hard tier, all {len(hard_all)} boards copperline routed "
+             f"(including those Freerouting has no result for): {hk}/{len(hard_all)} = {hk / len(hard_all):.2f} clean.")
+    if start in text:
+        text = text[: text.index(start) + len(start)] + "\n" + body.replace("## ", "#### ") + extra + "\n" + text[text.index(end):]
+    readme.write_text(text)
 
 
 def write_chart(chart):

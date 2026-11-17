@@ -8,10 +8,9 @@ routes boards on your machine with no server.
 
 ![copperline routing a two-layer QFP-48 breakout: first pass with nets overlapping, then negotiation until no two nets share copper](assets/routing.gif)
 
-**Headline.** On real open-hardware boards it never saw during development, scored by
-KiCad 9's own DRC, copperline routes **93% of medium boards clean against Freerouting's
-63%**, with a median of 2.8 s per board against Freerouting's 30 s. (Hard tier and the
-Freerouting side of it are still running: see the table.)
+<!-- headline:start -->
+On 86 medium and 29 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 86% of the hard ones clean, against Freerouting's 65% and 66%**, with a median of 3.0 s and 22 s per board against 34 s and 152 s.
+<!-- headline:end -->
 
 ![Clean-pass rate per tier, copperline vs Freerouting](assets/headline.svg)
 
@@ -26,48 +25,77 @@ severity) reports zero unconnected items and zero violations on the routed file.
 PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs it
 (`-mp 10`, headless, 1800 s cap), through KiCad's own DSN export and SES import.
 
-| tier | boards | copperline clean | Freerouting clean | copperline median / p90 s | Freerouting median / p90 s | both clean | only copperline | only Freerouting |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| easy (seen in dev) | 96 | 96/96 = 1.00 [0.96, 1.00] | 81/96 = 0.84 [0.76, 0.90] | 0.4 / 2.2 | 22.1 / 63.6 | 81 | 15 | 0 |
-| medium, held out | 81 | 75/81 = 0.93 [0.85, 0.97] | 51/81 = 0.63 [0.52, 0.73] | 2.8 / 18.6 | 30.1 / 541.3 | 50 | 25 | 1 |
-| hard, held out | 23 | 19/23 = 0.83 [0.63, 0.93] | 16/23 = 0.70 [0.49, 0.84] | 18.8 / 121.3 | 149.0 / 1800.0 | 14 | 5 | 2 |
+<!-- results:start -->
+| tier | boards | copperline clean | Freerouting clean | Freerouting, conversion artifacts forgiven | copperline median / p90 s | Freerouting median / p90 s | both clean | only copperline | only Freerouting |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| easy (seen in dev) | 96 | 96/96 = 1.00 [0.96, 1.00] | 81/96 = 0.84 [0.76, 0.90] | 85/96 = 0.89 [0.81, 0.93] | 0.4 / 2.2 | 22.1 / 63.6 | 81 | 15 | 0 |
+| medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 56/86 = 0.65 [0.55, 0.74] | 61/86 = 0.71 [0.61, 0.79] | 3.0 / 18.8 | 33.5 / 541.3 | 54 | 25 | 2 |
+| hard, held out | 29 | 25/29 = 0.86 [0.69, 0.95] | 19/29 = 0.66 [0.47, 0.80] | 19/29 = 0.66 [0.47, 0.80] | 21.5 / 121.3 | 151.5 / 1800.0 | 17 | 8 | 2 |
 
-Clean-pass with a Wilson 95% interval, then median and 90th-percentile route time per board.
-"both / only" count the boards each router got clean. **Partial:** the hard held-out tier
-currently covers the boards both routers have finished; Freerouting needs up to 30 minutes
-per hard board and its run is still going.
+#### copperline on every board of each tier (not only those Freerouting finished)
 
-Where the boards fail (paired boards):
+| tier | boards routed | clean | boards where KiCad found errors in copperline's copper |
+|---|---:|---:|---:|
+| easy (seen in dev) | 96 | 96/96 = 1.00 [0.96, 1.00] | 0 |
+| medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 1 |
+| hard, held out | 74 | 51/74 = 0.69 [0.58, 0.78] | 1 |
 
-| router | tier | unconnected only | DRC violations | timeout / error |
-|---|---|---:|---:|---:|
-| copperline | easy (seen in dev) | 0 | 0 | 0 |
-| freerouting | easy (seen in dev) | 10 | 4 | 1 |
-| copperline | medium, held out | 5 | 1 | 0 |
-| freerouting | medium, held out | 22 | 6 | 2 |
-| copperline | hard, held out | 4 | 0 | 0 |
-| freerouting | hard, held out | 2 | 0 | 5 |
+copperline's own DRC vs KiCad: KiCad found errors in copperline's copper on 2 of 668 routed board runs (0282_WordClock_v2.0_WordClock_v2, 0595_LoRaPP_loramod).
 
-copperline fails by leaving a connection out; it does not write copper it knows is illegal.
-Freerouting's failures include clearance violations, shorts and track-width errors that it
-writes into the board (51 violations on the boards above). copperline's one KiCad error in
-the frozen run is a short on WordClock_v2: a plated through-hole pad whose layer list names
-only F.Cu, which KiCad treats as copper on every layer and copperline did not. That is fixed
-after the freeze (commit e597165, with a test), and the held-out numbers are left as the
+#### Parity with PCBWorld's published Freerouting run (D3-A)
+
+PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) reports mean DRC violations 0.09 on fully routed boards and routability 0.98 (mean fraction of nets routed). Clean-pass is not published, so this compares what can be compared:
+
+- our single-seed run on test-a: 85/96 boards fully routed, mean DRC violations on those 0.15
+- clean-pass of our run: 81/96
+
+
+The slowest held-out copperline run took 430 s. Hard tier, all 74 boards copperline routed (including those Freerouting has no result for): 51/74 = 0.69 clean.
+<!-- results:end -->
+
+How to read this. Clean-pass comes with a Wilson 95% interval, then the median and
+90th-percentile route time per board. "Both / only" count the boards each router got clean.
+The main table pairs boards: a board counts only once both routers have a result for it.
+
+**Why Freerouting loses boards.** Mostly it runs out of passes: at PCBWorld's setting of
+`-mp 10` it often stops with a connection or two unrouted. Its DRC errors, though, are
+mostly not routing mistakes. Freerouting receives the board through KiCad's Specctra DSN
+export, which carries no copper text and no footprint-level clearance overrides, and
+the SES that comes back has widths rounded to the DSN resolution. `bench/classify.py`
+labels every KiCad error by cause. The "conversion artifacts forgiven" column counts a
+fully connected Freerouting board as clean when all of its errors are of those three kinds.
+That is the fairer comparison of the two routing engines. The plain column is what a user
+of the KiCad-to-Freerouting round trip actually gets. copperline reads the `.kicad_pcb`
+directly, so it sees the text and the overrides. That is a real advantage of the approach,
+but it is not cleverer routing.
+
+**Where copperline fails.** copperline fails by leaving connections out. Before writing,
+it checks its copper with its own exact DRC and drops anything that fails. KiCad flagged
+copperline's copper on two boards, both bugs in that DRC, found by this benchmark and fixed
+after the freeze. On WordClock_v2, a plated through-hole pad lists only F.Cu in its layers,
+which KiCad treats as copper on every layer (commit e597165). On LoRaPP, two new tracks
+0.1493 mm apart fell into different buckets of the DRC's spatial index and were never
+compared. Both fixes have regression tests. The held-out numbers are left exactly as the
 frozen version produced them.
 
+Per-board results are in [`bench/results/per-board.md`](bench/results/per-board.md).
+
 Three held-out boards side by side (left copperline, right Freerouting, same input file;
-solid blocks are copper text, drawn as the boxes copperline keeps clear of):
+solid blocks are copper text, drawn as the boxes copperline keeps clear of). On the second
+and third, Freerouting's errors are its tracks crossing copper text it was never shown.
 
 ![Eggbot controller, both clean](assets/compare-0348.png)
-![rotorcontrol nanomount: Freerouting writes clearance errors and a short](assets/compare-0119.png)
-![type5: neither router finishes; copperline leaves 4 connections, Freerouting writes 9 errors](assets/compare-0300.png)
+![rotorcontrol nanomount: Freerouting's tracks cross copper text missing from its DSN input](assets/compare-0119.png)
+![type5: copperline leaves 4 connections; Freerouting connects everything but crosses copper text](assets/compare-0300.png)
 
-Numbers come from `bench/results/summary.md`, which `python3 bench/report.py` regenerates
-from the per-board CSVs in `bench/results/`. Times are the router's own wall time per
+Every number in this section is written by `python3 bench/report.py` from the per-board
+CSVs in `bench/results/` (also into `bench/results/summary.md`). Times are the router's own wall time per
 board on an 8 GB Apple M-series laptop, with the two routers running side by side. For
 Freerouting this includes JVM start (about 1 s). DSN export and SES import are not
-counted, and KiCad's DRC is not counted for either router.
+counted, and KiCad's DRC is not counted for either router. Both routers ran side by side on
+a loaded machine, so absolute times will differ on yours; the ratio is the useful part.
+Freerouting 2.1.0 was run once per board with its default seed. PCBWorld also reports a best-of-4-seeds
+number, which this run does not attempt.
 
 ### A note on the benchmark's splits
 
@@ -119,8 +147,7 @@ footprints with pads (circle, rect, roundrect, oval, trapezoid, chamfered and cu
 each turned into exact shapes: points, capsules and polygons with a rounding radius), drill
 holes, the board outline from Edge.Cuts (lines, arcs, circles, polygons, including those
 inside footprints), rule-area keepouts, existing copper and copper text. Text is boxed
-with the real advance widths of KiCad's stroke font, measured from pcbnew. A box twice
-too wide once swallowed a bridge rectifier's pads.
+with the real advance widths of KiCad's stroke font, measured from pcbnew.
 
 **Rules.** Net classes and patterns, track widths, clearances, via sizes, copper-to-edge,
 hole clearance and hole-to-hole come from the `.kicad_pro`, along with pad- and
@@ -153,10 +180,10 @@ conflict are ripped up and rerouted. This repeats until nothing overlaps (McMurc
 Ebeling's PathFinder, 1995). If it stalls, the remaining nets are rerouted with other nets'
 halos as hard walls.
 
-**Last word: exact DRC.** The result is checked segment by segment against pads, holes,
+**Exact check.** The result is checked segment by segment against pads, holes,
 existing copper, the board edge, keepouts and the other new copper, using the exact
-distance functions. A net that still violates is rerouted strictly or left unrouted, so
-copperline never writes a violation it knows about. When a board ends up incomplete, the
+distance functions. A net that still violates is rerouted strictly or, failing that, left
+unrouted. When a board ends up incomplete, the
 whole route is retried on a finer grid (0.6x, then 0.4x pitch) within one time budget.
 
 **Writing.** Grid paths become straight runs (collinear moves merged, breakpoints kept
@@ -171,8 +198,8 @@ with zero violations under copperline's DRC. Every net the router reports as com
 also be connected according to an independent connectivity check that follows KiCad's rules,
 and the output must strip back to the input byte for byte.
 
-On real boards KiCad is the judge. Every result in `bench/results/` was scored by
-`kicad-cli`. The pad parser is also checked directly against KiCad: `bench/check_parser.py`
+On real boards, every result in `bench/results/` was scored by `kicad-cli`. Disagreements
+between copperline's DRC and KiCad's are counted in the results above. The pad parser is also checked directly against KiCad: `bench/check_parser.py`
 has pcbnew dump every pad's own copper polygon and requires each vertex to lie inside
 copperline's shape (`bench/results/parser-*.txt`).
 
@@ -204,9 +231,10 @@ splits are in `bench/splits.json`.
   held-out failures above come from.
 - copperline reads a `.kicad_pcb` the way KiCad 9 writes it. Older files should be opened
   and saved once in KiCad 9 first.
-- Hard boards can take minutes, because A* floods behind large blocked areas. The default
-  time budget is 90 s per board, after which copperline writes what it has, legal but
-  possibly incomplete.
+- Hard boards can take minutes, because A* floods behind large blocked areas. The time
+  budget (`--budget`, 90 s by default) bounds negotiation only. The cleanup reroutes and
+  the finer-grid retries that follow can run past it; the slowest held-out run is in the
+  results above. The budget is wall-clock time, so a loaded machine routes less within it.
 - The browser demo runs the same code single-threaded; dense boards take a while there.
 
 ## References
@@ -220,6 +248,14 @@ splits are in `bench/splits.json`.
 - [PCBench](https://github.com/PCBench/PCBench): the open-hardware board collection.
 - [Freerouting](https://github.com/freerouting/freerouting): the baseline router.
 - KiCad 9 file format and `kicad-cli` DRC: the ground truth for every number here.
+
+## How this was made
+
+copperline was written by an AI coding agent (Anthropic's Claude), working unattended over
+several sessions, as one of a series of daily build projects; the commits say so. The
+parser and geometry kernel come from an earlier attempt at the same project, as the first
+commit notes. Every number above comes from scripts in this repo, and the held-out boards
+were sealed before any router code existed.
 
 ## License
 

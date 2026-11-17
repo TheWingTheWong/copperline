@@ -1,6 +1,1 @@
-sealed-c: 91 boards, 20807 pads checked, 2 boards with a pad where KiCad copper lies outside ours
-0595_LoRaPP_loramod: checked 249 pads, 1 mismatches
-    pad ('P2', '1', 194.21, 76.03) KiCad copper extends 1.6030 mm beyond ours
-0606_elec_power_dispatch: checked 314 pads, 2 mismatches
-    pad ('U2', '49', 133.5, 94.2) KiCad copper extends 3.7098 mm beyond ours
-    pad ('U2', '49', 133.5, 94.2) KiCad copper extends 3.7098 mm beyond ours
+sealed-c: 91 boards, 20807 pads checked, 0 boards with a pad where KiCad copper lies outside ours
