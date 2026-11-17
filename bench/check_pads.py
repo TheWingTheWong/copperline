@@ -54,19 +54,26 @@ def main():
     for k in kicad:
         key = (k["ref"], k["num"], round(k["x"], 3), round(k["y"], 3))
         cands = [p for p in by_id.get((k["ref"], k["num"]), []) if math.dist((p["x"], p["y"]), (k["x"], k["y"])) < 0.005]
-        o = min(cands, key=lambda p: math.dist((p["x"], p["y"]), (k["x"], k["y"]))) if cands else None
+        if cands and not any(p["shapes"] for p in cands):
+            continue  # matched, but the pad carries no copper (NPTH)
+        cands = [p for p in cands if p["shapes"]]
+        o = cands[0] if cands else None
         if o is None:
             print("missing pad", key)
             bad += 1
             continue
-        if not o["shapes"]:
-            continue
         checked += 1
-        worst = 0.0
-        for outline in k["outlines"]:
-            for q in outline:
-                g = min(gap(q, s) for s in o["shapes"])
-                worst = max(worst, g)  # positive = KiCad copper outside ours
+
+        def worst_for(cand):
+            w = 0.0
+            for outline in k["outlines"]:
+                for q in outline:
+                    w = max(w, min(gap(q, s) for s in cand["shapes"]))  # positive = KiCad copper outside ours
+            return w
+
+        # Several pads can share a number and a centre (an exposed pad and its thermal
+        # vias); compare against the one that matches best.
+        worst = min(worst_for(c) for c in cands)
         if worst > TOL:
             bad += 1
             if bad <= 15:

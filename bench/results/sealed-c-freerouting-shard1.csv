@@ -11,3 +11,5 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0467_pmtoy-hardware-pcb_PMToy,freerouting,,ok,1,0,0,0,,156.615,12.347,462,17,873.196
 0478_PmodHDMIIn_PmodHDMIIn,freerouting,,ok,1,0,0,0,,168.865,22.004,426,14,851.335
 0482_Hardware_Playground_rfm69w_adapter,freerouting,,timeout,0,,,0,,1800,,,,
+0490_fifogfx_c64cart,freerouting,,timeout,0,,,0,,1800,,,,
+0504_TeensyProtoboard_TeensyProtoboard,freerouting,,timeout,0,,,0,,1800,,,,

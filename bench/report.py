@@ -25,7 +25,8 @@ ROUTERS = ["copperline", "freerouting"]
 def load(split, router):
     """Rows of one split/router, merged with any `--shard` CSVs of the same run."""
     out = {}
-    for f in [RES / f"{split}-{router}.csv", *sorted(RES.glob(f"{split}-{router}-shard*.csv"))]:
+    base = f"{split}-{router}" if router else split
+    for f in [RES / f"{base}.csv", *sorted(RES.glob(f"{base}-shard*.csv"))]:
         if f.exists():
             with open(f) as fh:
                 out.update({r["board"]: r for r in csv.DictReader(fh)})
@@ -124,9 +125,10 @@ def main():
             lines.append(f"| {router} | {t} | {k} |")
     # Development pools.
     s = json.loads((HERE / "splits.json").read_text())
-    lines += ["", "## Development pools (copperline only, seen during development)", "", "| pool | boards | clean | median / p90 s |", "|---|---:|---:|---:|"]
+    lines += ["", "## Development pools (copperline only, seen during development; dev-medium was run with a pre-freeze version)", "", "| pool | boards | clean | median / p90 s |", "|---|---:|---:|---:|"]
     for split in ["dev-easy", "dev-medium", "dev-hard"]:
-        rs = load(split, "copperline")
+        # dev-easy-copperline-v2.csv is the regression run of the frozen version.
+        rs = load(split + "-copperline-v2", "") if (RES / f"{split}-copperline-v2.csv").exists() else load(split, "copperline")
         if not rs:
             continue
         k = sum(int(r["clean"]) for r in rs.values())

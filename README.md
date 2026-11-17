@@ -8,7 +8,10 @@ routes boards on your machine with no server.
 
 ![copperline routing a two-layer QFP-48 breakout: first pass with nets overlapping, then negotiation until no two nets share copper](assets/routing.gif)
 
-**Headline.** HEADLINE_TBD
+**Headline.** On real open-hardware boards it never saw during development, scored by
+KiCad 9's own DRC, copperline routes **93% of medium boards clean against Freerouting's
+63%**, with a median of 2.8 s per board against Freerouting's 30 s. (Hard tier and the
+Freerouting side of it are still running: see the table.)
 
 ![Clean-pass rate per tier, copperline vs Freerouting](assets/headline.svg)
 
@@ -23,7 +26,42 @@ severity) reports zero unconnected items and zero violations on the routed file.
 PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs it
 (`-mp 10`, headless, 1800 s cap), through KiCad's own DSN export and SES import.
 
-SUMMARY_TBD
+| tier | boards | copperline clean | Freerouting clean | copperline median / p90 s | Freerouting median / p90 s | both clean | only copperline | only Freerouting |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| easy (seen in dev) | 96 | 96/96 = 1.00 [0.96, 1.00] | 81/96 = 0.84 [0.76, 0.90] | 0.4 / 2.2 | 22.1 / 63.6 | 81 | 15 | 0 |
+| medium, held out | 81 | 75/81 = 0.93 [0.85, 0.97] | 51/81 = 0.63 [0.52, 0.73] | 2.8 / 18.6 | 30.1 / 541.3 | 50 | 25 | 1 |
+| hard, held out | 23 | 19/23 = 0.83 [0.63, 0.93] | 16/23 = 0.70 [0.49, 0.84] | 18.8 / 121.3 | 149.0 / 1800.0 | 14 | 5 | 2 |
+
+Clean-pass with a Wilson 95% interval, then median and 90th-percentile route time per board.
+"both / only" count the boards each router got clean. **Partial:** the hard held-out tier
+currently covers the boards both routers have finished; Freerouting needs up to 30 minutes
+per hard board and its run is still going.
+
+Where the boards fail (paired boards):
+
+| router | tier | unconnected only | DRC violations | timeout / error |
+|---|---|---:|---:|---:|
+| copperline | easy (seen in dev) | 0 | 0 | 0 |
+| freerouting | easy (seen in dev) | 10 | 4 | 1 |
+| copperline | medium, held out | 5 | 1 | 0 |
+| freerouting | medium, held out | 22 | 6 | 2 |
+| copperline | hard, held out | 4 | 0 | 0 |
+| freerouting | hard, held out | 2 | 0 | 5 |
+
+copperline fails by leaving a connection out; it does not write copper it knows is illegal.
+Freerouting's failures include clearance violations, shorts and track-width errors that it
+writes into the board (51 violations on the boards above). copperline's one KiCad error in
+the frozen run is a short on WordClock_v2: a plated through-hole pad whose layer list names
+only F.Cu, which KiCad treats as copper on every layer and copperline did not. That is fixed
+after the freeze (commit e597165, with a test), and the held-out numbers are left as the
+frozen version produced them.
+
+Three held-out boards side by side (left copperline, right Freerouting, same input file;
+solid blocks are copper text, drawn as the boxes copperline keeps clear of):
+
+![Eggbot controller, both clean](assets/compare-0348.png)
+![rotorcontrol nanomount: Freerouting writes clearance errors and a short](assets/compare-0119.png)
+![type5: neither router finishes; copperline leaves 4 connections, Freerouting writes 9 errors](assets/compare-0300.png)
 
 Numbers come from `bench/results/summary.md`, which `python3 bench/report.py` regenerates
 from the per-board CSVs in `bench/results/`. Times are the router's own wall time per
@@ -64,7 +102,7 @@ cargo run --release -- route examples/mcu48.kicad_pcb -o /tmp/mcu48-routed.kicad
 ```
 
 ```
-EXAMPLE_TBD
+pitch 0.087 mm, 42 nets, 62/62 connections, 18 iterations, 544 tracks, 54 vias, 1267.9 mm, 11707 ms
 ```
 
 `scripts/check_examples.sh` routes both bundled boards and scores them with `kicad-cli`
@@ -134,7 +172,9 @@ also be connected according to an independent connectivity check that follows Ki
 and the output must strip back to the input byte for byte.
 
 On real boards KiCad is the judge. Every result in `bench/results/` was scored by
-`kicad-cli`. PARSER_TBD
+`kicad-cli`. The pad parser is also checked directly against KiCad: `bench/check_parser.py`
+has pcbnew dump every pad's own copper polygon and requires each vertex to lie inside
+copperline's shape (`bench/results/parser-*.txt`).
 
 ## Reproducing the benchmark
 
@@ -160,7 +200,8 @@ splits are in `bench/splits.json`.
 - Through vias only (no blind or buried vias). No differential pairs, length matching or
   impedance control. Copper pours are treated as fixed obstacles and are not created.
 - On fine-pitch parts in tight spots (USB-C receptacles, FPC connectors) the grid sometimes
-  cannot find a legal entry and leaves a connection unrouted. FAILURE_TBD
+  cannot find a legal entry and leaves a connection unrouted. That is where most of the
+  held-out failures above come from.
 - copperline reads a `.kicad_pcb` the way KiCad 9 writes it. Older files should be opened
   and saved once in KiCad 9 first.
 - Hard boards can take minutes, because A* floods behind large blocked areas. The default

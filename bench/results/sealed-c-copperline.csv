@@ -43,3 +43,25 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0507_Dekada_dekada_TopoR_curves,copperline,,ok,1,0,0,0,,1.402,0.0,229,0,235.639
 0508_kitspace_sympetrum-v2%20NFF1.1,copperline,,ok,1,0,0,0,,50.064,0.0,486,33,747.998
 0512_Protoboard-DIP-for-CHIP_chip-dip-protoboard,copperline,,ok,1,0,0,0,,90.806,0.0,503,1,535.398
+0515_esp8266_32x32panel_esp_12_f_595_ORDERED,copperline,,ok,0,1,0,0,,175.195,0.0,804,71,1473.655
+0516_MicroMaple_MicroMaple,copperline,,ok,0,18,0,0,,285.036,0.0,558,72,1032.336
+0524_Baofeng-Interface_BaofengInterfaceIsolated,copperline,,ok,1,0,0,0,,19.965,0.0,531,1,585.258
+0525_pcb-covox-amp-v2_pcb-covox-amp-v2,copperline,,ok,1,0,0,0,,28.968,0.0,518,38,1233.593
+0529_kitspace_flypi,copperline,,ok,1,0,0,0,,93.805,0.0,562,73,2001.115
+0530_RC2014_RC2014 Tandy Sound Card,copperline,,ok,1,0,0,0,,79.86,0.0,864,54,2483.883
+0533_headstage-adapter_headstage adapter,copperline,,ok,0,11,0,0,,358.212,0.0,812,123,1598.217
+0535_anima_MotorDrive,copperline,,ok,1,0,0,0,,40.426,0.0,576,51,1173.851
+0537_rodi-pcb_rodi-pcb,copperline,,ok,1,0,0,0,,29.428,0.0,510,28,732.354
+0538_tdstat_TDstatv2,copperline,,ok,1,0,0,0,,39.369,0.0,640,43,1467.323
+0540_CPU-Power-Supply-Mod_CPU_Power_Supply_Mod,copperline,,ok,1,0,0,0,,50.323,0.0,562,7,1861.149
+0543_solar-lora_solar-lora,copperline,,ok,0,2,0,0,,156.954,0.0,664,63,1333.285
+0548_kitspace_training_board_v02,copperline,,ok,0,1,0,0,,94.151,0.0,518,7,1357.375
+0552_wavegen_wavegen-alt,copperline,,ok,0,4,0,0,,429.664,0.0,573,49,902.46
+0556_UniversalBoard4Nucleo_Nucleo_Universal_Board,copperline,,ok,0,5,0,0,,127.861,0.0,842,34,1330.829
+0559_Biscay_Blueeye_sipm-fpga,copperline,,ok,1,0,0,0,,53.618,0.0,666,35,1219.045
+0562_MAVRIC_Hardware__autosave-Motherboard,copperline,,ok,0,3,0,0,,161.534,0.0,680,44,1824.966
+0563_OpAmpPassXsistorBenchSupply_OpAmpPassXsistorBenchSupply,copperline,,ok,1,0,0,0,,35.161,0.0,623,11,1343.589
+0566_TinyTracker_ub-minimal,copperline,,ok,1,0,0,0,,36.614,0.0,499,39,396.451
+0567_kitspace_T32_ref,copperline,,ok,1,0,0,0,,44.371,0.0,919,97,1667.649
+0577_Shift-out-32-HC595_Shift-out,copperline,,ok,0,5,0,0,,125.152,0.0,565,43,1099.696
+0580_nodemcu-basecamp_NodeMCU Basecamp,copperline,,ok,1,0,0,0,,38.512,0.0,718,33,1069.107

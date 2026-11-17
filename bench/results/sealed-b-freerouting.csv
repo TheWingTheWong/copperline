@@ -78,3 +78,5 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0363_OpenBot_openbot,freerouting,,ok,1,0,0,0,,108.591,19.722,233,8,760.636
 0368_Inkjet_InkjetDriver,freerouting,,ok,0,1,0,0,,1095.308,12.302,337,11,1205.864
 0372_retrocon_bbb-adapter,freerouting,,ok,1,0,0,0,,98.546,15.901,234,3,937.285
+0374_light-painting-wand_light-wand,freerouting,,timeout,0,,,0,,1800,,,,
+0375_eurorack_headphones_eurorack_headphones,freerouting,,ok,0,1,0,0,,1168.926,17.371,260,6,900.754
