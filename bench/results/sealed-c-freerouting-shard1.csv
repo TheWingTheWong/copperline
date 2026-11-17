@@ -18,3 +18,6 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0530_RC2014_RC2014 Tandy Sound Card,freerouting,,ok,1,0,0,0,,431.208,12.983,649,14,2470.29
 0537_rodi-pcb_rodi-pcb,freerouting,,ok,0,1,0,0,,293.568,40.637,508,11,965.354
 0543_solar-lora_solar-lora,freerouting,,timeout,0,,,0,,600.0,,,,
+0556_UniversalBoard4Nucleo_Nucleo_Universal_Board,freerouting,,ok,1,0,0,0,,99.967,8.257,590,0,1246.995
+0563_OpAmpPassXsistorBenchSupply_OpAmpPassXsistorBenchSupply,freerouting,,timeout,0,,,0,,600.0,,,,
+0567_kitspace_T32_ref,freerouting,,timeout,0,,,0,,600.0,,,,

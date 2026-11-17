@@ -149,6 +149,7 @@ def main():
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--tag", default="", help="suffix for the CSV name")
     ap.add_argument("--cap", type=float, default=CAP_S, help="per-board time cap in seconds (default 1800, as PCBWorld)")
+    ap.add_argument("--reverse", action="store_true", help="walk the boards from the end (a second worker on a shard)")
     ap.add_argument("--shard", default="", help="i/n: only boards with index %% n == i (CSV gets -shard<i>)")
     a = ap.parse_args()
     CAP_S = a.cap
@@ -162,7 +163,7 @@ def main():
     if a.shard:
         i, n = map(int, a.shard.split("/"))
         names = [x for k, x in enumerate(names) if k % n == i]
-        a.tag = (a.tag + "-" if a.tag else "") + f"shard{i}"
+        a.tag = (a.tag + "-" if a.tag else "") + f"shard{i}" + ("r" if a.reverse else "")
     RESULTS.mkdir(exist_ok=True)
     tag = f"-{a.tag}" if a.tag else ""
     out = RESULTS / f"{a.split}-{a.router}{tag}.csv"
@@ -179,9 +180,21 @@ def main():
                 with open(f) as fh:
                     for r in csv.DictReader(fh):
                         done.setdefault(r["board"], r)
-    for i, n in enumerate(names):
+    order = list(enumerate(names))
+    if a.reverse:
+        order.reverse()
+    for i, n in order:
         if n in done:
             continue
+        if a.shard:
+            # Another worker may have finished this board since we started.
+            for f in RESULTS.glob(f"{a.split}-{a.router}*.csv"):
+                if f != out and n in f.read_text():
+                    break
+            else:
+                f = None
+            if f is not None:
+                continue
         if not (folder(n) / "processed_v9_guide_v3_unrouted.kicad_pcb").exists():
             print(f"[{i + 1}/{len(names)}] {n}: input missing, skipped", flush=True)
             continue

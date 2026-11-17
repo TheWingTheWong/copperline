@@ -76,3 +76,8 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0605_recalbox-gpio-board_board,copperline,,ok,0,36,0,0,,1058.275,0.0,633,60,2506.937
 0606_elec_power_dispatch,copperline,,ok,0,4,0,0,,510.054,0.0,684,47,1000.642
 0612_balena-rover-wide-hat_resin-rover,copperline,,ok,0,3,0,0,,90.911,0.0,824,81,1459.585
+0613_Teensy-3.5-Breakout-Boaard_TeensyMegaIoShield,copperline,,ok,0,24,0,0,,424.199,0.0,1181,90,3021.274
+0616_MixSID_mixsid,copperline,,ok,0,10,0,0,,351.749,0.0,1323,57,2254.972
+0617_divergence_meter_dm_nixiebrd,copperline,,ok,0,4,0,0,,149.033,0.0,1202,79,3751.987
+0624_elbsupply_elbsupply,copperline,,ok,0,1,0,0,,99.713,0.0,946,109,2180.213
+0627_divergence_meter_dm_control,copperline,,ok,0,1,0,0,,394.999,0.0,913,79,1474.51

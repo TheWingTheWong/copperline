@@ -11,3 +11,6 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0468_boatcontrol_NonLatchingNO30A,freerouting,,timeout,0,,,0,,1800,,,,
 0480_hwstar_ac-power-monitor,freerouting,,ok,1,0,0,0,,149.027,13.815,405,19,1161.166
 0485_moonpunchorg_pcieduino,freerouting,,ok,1,0,0,0,,286.086,13.077,511,32,1087.413
+0496_kitspace_f-91w,freerouting,,timeout,0,,,0,,600.0,,,,
+0507_Dekada_dekada_TopoR_curves,freerouting,,timeout,0,,,0,,600.0,,,,
+0515_esp8266_32x32panel_esp_12_f_595_ORDERED,freerouting,,ok,1,0,0,0,,312.765,14.312,665,39,1723.173
