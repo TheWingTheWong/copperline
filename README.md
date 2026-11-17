@@ -67,6 +67,9 @@ cargo run --release -- route examples/mcu48.kicad_pcb -o /tmp/mcu48-routed.kicad
 EXAMPLE_TBD
 ```
 
+`scripts/check_examples.sh` routes both bundled boards and scores them with `kicad-cli`
+(both come back with zero violations and zero unconnected items).
+
 Other commands: `copperline info` (what the parser saw), `copperline svg` and
 `copperline render` (pictures of a board), `--frames DIR` on `route` (one image per
 routing step; `scripts/animate.sh` turns them into the GIF above).
@@ -158,6 +161,8 @@ splits are in `bench/splits.json`.
   impedance control. Copper pours are treated as fixed obstacles and are not created.
 - On fine-pitch parts in tight spots (USB-C receptacles, FPC connectors) the grid sometimes
   cannot find a legal entry and leaves a connection unrouted. FAILURE_TBD
+- copperline reads a `.kicad_pcb` the way KiCad 9 writes it. Older files should be opened
+  and saved once in KiCad 9 first.
 - Hard boards can take minutes, because A* floods behind large blocked areas. The default
   time budget is 90 s per board, after which copperline writes what it has, legal but
   possibly incomplete.

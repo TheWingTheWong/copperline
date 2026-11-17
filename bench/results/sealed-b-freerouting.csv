@@ -75,3 +75,6 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0355_imfr-schematics_Telescopio,freerouting,,ok,1,0,0,0,,54.354,22.07,216,0,1458.122
 0356_kitspace_ideal_diode,freerouting,,ok,0,1,0,0,,549.034,27.797,173,1,208.114
 0362_prog-cc-100mA_prog-cc-100mA,freerouting,,ok,0,1,0,0,,1132.98,12.541,218,1,645.928
+0363_OpenBot_openbot,freerouting,,ok,1,0,0,0,,108.591,19.722,233,8,760.636
+0368_Inkjet_InkjetDriver,freerouting,,ok,0,1,0,0,,1095.308,12.302,337,11,1205.864
+0372_retrocon_bbb-adapter,freerouting,,ok,1,0,0,0,,98.546,15.901,234,3,937.285

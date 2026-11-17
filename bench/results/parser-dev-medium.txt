@@ -1,36 +1,15 @@
-dev-medium: 200 boards, 15259 pads checked, 14 boards with a pad where KiCad copper lies outside ours
-0102_ponyser-pcb_Ponyser: checked 36 pads, 3 mismatches
-    missing pad ('D3', '1', 166.053, 151.3)
-    missing pad ('D2', '1', 172.403, 150.03)
-    missing pad ('D1', '2', 162.39, 154.623)
-0109_kitspace_CH330: checked 34 pads, 1 mismatches
-    missing pad ('C2', '1', 191.3, 77.888)
-0120_hardware-designs_solar-harvester: checked 42 pads, 3 mismatches
-    missing pad ('U1', '3', 45.212, 40.958)
-    missing pad ('U1', '4', 42.672, 40.958)
-    missing pad ('R2', '1', 64.707, 43.18)
-0141_TPS63001-Breakout_TPS63001 Breakout: checked 41 pads, 2 mismatches
-    missing pad ('U1', '11', 126.78, 87.183)
-    missing pad ('U1', '11', 125.54, 87.183)
-0143_kitspace_solenoid_driver: checked 47 pads, 1 mismatches
-    missing pad ('Q1', '3', 143.573, 84.5)
-0146_pulse_v1_pulse: checked 34 pads, 7 mismatches
-    missing pad ('U1', '4', 33.147, 33.972)
-    missing pad ('U1', '5', 39.751, 33.972)
-    missing pad ('R2', '1', 46.291, 30.163)
-    missing pad ('R2', '2', 46.291, 32.068)
-    missing pad ('K2', '4', 41.084, 26.924)
-0154_Arduino-Theremin_arduino-theremin-v1: checked 71 pads, 1 mismatches
-    missing pad ('R3', '2', 103.505, 75.121)
-0163_kika-in-space_analog-test-board: checked 39 pads, 4 mismatches
-    missing pad ('C2', '2', 132.143, 77.241)
-    missing pad ('C4', '2', 142.811, 77.241)
-    missing pad ('R2', '2', 132.143, 82.067)
-    missing pad ('R6', '2', 142.811, 82.067)
-0193_Teensy-Hats_Teensy-7-Segment-Hat: checked 64 pads, 1 mismatches
-    missing pad ('J3', 'G1', 150.172, 88.497)
-0257_xwhatits-capsense-controller_solenoid-driver: checked 65 pads, 1 mismatches
-    missing pad ('C4', '2', 187.0, 157.153)
+dev-medium: 200 boards, 15283 pads checked, 8 boards with a pad where KiCad copper lies outside ours
+0246_LongPixel_AnalogDriverMini: checked 62 pads, 1 mismatches
+    pad ('JP1', '1', 42.0, 28.75) KiCad copper extends 1.3945 mm beyond ours
+0266_m2-electronics_m2pa-tiny: checked 67 pads, 2 mismatches
+    pad ('IC1', '2', 139.0, 86.7) KiCad copper extends 0.9012 mm beyond ours
+    pad ('IC1', '2', 139.0, 86.7) KiCad copper extends 0.9012 mm beyond ours
+0267_m2-electronics_m2pa: checked 69 pads, 2 mismatches
+    pad ('IC1', '2', 139.0, 86.7) KiCad copper extends 0.9012 mm beyond ours
+    pad ('IC1', '2', 139.0, 86.7) KiCad copper extends 0.9012 mm beyond ours
+0268_m2-electronics_m2pa-instrument: checked 69 pads, 2 mismatches
+    pad ('IC1', '2', 139.0, 86.7) KiCad copper extends 0.9012 mm beyond ours
+    pad ('IC1', '2', 139.0, 86.7) KiCad copper extends 0.9012 mm beyond ours
 0270_kitspace_BQ25570_Harvester: checked 68 pads, 1 mismatches
     pad ('U1', '21', 129.54, 88.9) KiCad copper extends 1.1067 mm beyond ours
 0301_flatpack2-adapter_EltekFlatpack2: checked 80 pads, 8 mismatches
