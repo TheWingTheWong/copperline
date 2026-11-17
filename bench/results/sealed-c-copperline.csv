@@ -73,3 +73,4 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0599_RGBMatrixPanelCPLD-PhotonBackpack_RGBMatrixPanel_CPLD,copperline,,ok,0,10,0,0,,209.312,0.0,662,86,1495.134
 0602_PoEPi-hardware__autosave-pizero-poe,copperline,,ok,0,1,0,0,,313.288,0.0,783,71,943.938
 0603_f.60_keyboard,copperline,,ok,1,0,0,0,,87.412,0.0,780,15,3766.169
+0605_recalbox-gpio-board_board,copperline,,ok,0,36,0,0,,1058.275,0.0,633,60,2506.937

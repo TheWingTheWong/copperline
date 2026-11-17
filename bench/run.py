@@ -139,6 +139,7 @@ def run_board(name, router, seed):
 
 
 def main():
+    global CAP_S
     ap = argparse.ArgumentParser()
     ap.add_argument("--split", required=True)
     ap.add_argument("--router", choices=sorted(ROUTERS), required=True)
@@ -147,8 +148,10 @@ def main():
     ap.add_argument("--boards", default="")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--tag", default="", help="suffix for the CSV name")
+    ap.add_argument("--cap", type=float, default=CAP_S, help="per-board time cap in seconds (default 1800, as PCBWorld)")
     ap.add_argument("--shard", default="", help="i/n: only boards with index %% n == i (CSV gets -shard<i>)")
     a = ap.parse_args()
+    CAP_S = a.cap
     splits = json.loads((HERE / "splits.json").read_text())
     names = splits[a.split]
     if a.boards:
