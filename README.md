@@ -11,7 +11,7 @@ routes boards on your machine with no server.
 ![copperline routing a two-layer QFP-48 breakout: first pass with nets overlapping, then negotiation until no two nets share copper](assets/routing.gif)
 
 <!-- headline:start -->
-On 86 medium and 91 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 58% of the hard ones clean, against Freerouting's 65% and 40%**. Median time per board: 3 s against 34 s on the medium boards; on the hard ones copperline's median is 80 s, while Freerouting ran into its time cap on 46 of 91.
+On 86 medium and 90 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 58% of the hard ones clean, against Freerouting's 65% and 40%**. Median time per board: 3 s against 34 s on the medium boards; on the hard ones copperline's median is 84 s, while Freerouting ran into its time cap on 46 of 90. Those are the frozen build's numbers; today's build, with its default 90 s deadline, gets 92% and 94% on the same boards (median 1 s and 4 s).
 <!-- headline:end -->
 
 ![Clean-pass rate per tier, copperline vs Freerouting](assets/headline.svg)
@@ -32,7 +32,7 @@ PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | easy (seen in dev) | 96 | 96/96 = 1.00 [0.96, 1.00] | 81/96 = 0.84 [0.76, 0.90] | 85/96 = 0.89 [0.81, 0.93] | 0.4 / 2.2 | 22.1 / 63.6 | 81 | 15 | 0 |
 | medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 56/86 = 0.65 [0.55, 0.74] | 61/86 = 0.71 [0.61, 0.79] | 3.0 / 18.8 | 33.5 / 541.3 | 54 | 25 | 2 |
-| hard, held out | 91 | 53/91 = 0.58 [0.48, 0.68] | 36/91 = 0.40 [0.30, 0.50] | 36/91 = 0.40 [0.30, 0.50] | 79.9 / 395.0 | 600.0 / 600.0 | 31 | 22 | 5 |
+| hard, held out | 90 | 52/90 = 0.58 [0.47, 0.67] | 36/90 = 0.40 [0.30, 0.50] | 36/90 = 0.40 [0.30, 0.50] | 83.6 / 414.9 | 600.0 / 600.0 | 31 | 21 | 5 |
 
 #### copperline on every board of each tier (not only those Freerouting finished)
 
@@ -40,9 +40,9 @@ PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs
 |---|---:|---:|---:|
 | easy (seen in dev) | 96 | 96/96 = 1.00 [0.96, 1.00] | 0 |
 | medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 1 |
-| hard, held out | 91 | 53/91 = 0.58 [0.48, 0.68] | 1 |
+| hard, held out | 90 | 52/90 = 0.58 [0.47, 0.67] | 1 |
 
-copperline's own DRC vs KiCad: KiCad found errors in copperline's copper on 2 of 684 routed board runs (0282_WordClock_v2.0_WordClock_v2, 0595_LoRaPP_loramod).
+copperline's own DRC vs KiCad: KiCad found errors in copperline's copper on 2 of 715 routed board runs (0282_WordClock_v2.0_WordClock_v2, 0595_LoRaPP_loramod).
 
 #### Parity with PCBWorld's published Freerouting run (D3-A)
 
@@ -51,6 +51,15 @@ PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) rep
 - our single-seed run on test-a: 85/96 boards fully routed, mean DRC violations on those 0.15
 - clean-pass of our run: 81/96
 
+
+#### Current build on the sealed sets (default 90 s deadline)
+
+The frozen run above is the held-out result. The post-freeze fixes (PTH pads on every layer, DRC bucket inflation, time budget as a hard deadline) were prompted by KiCad findings on those boards, so this rerun is not held out; it shows what today's code and defaults give.
+
+| tier | boards | clean | median / p90 s | build |
+|---|---:|---:|---:|---|
+| medium, held out | 13 | 12/13 = 0.92 [0.67, 0.99] | 0.8 / 3.2 | bench-freeze-30-g43cf691 |
+| hard, held out | 18 | 17/18 = 0.94 [0.74, 0.99] | 3.5 / 24.3 | bench-freeze-30-g43cf691-dirty |
 
 The slowest completed held-out copperline run took 1774 s; the frozen build ran into the bench's 1800 s cap on 0672_DAC-ADAU1966_DAC-ADAU1966, because its time budget was only checked between negotiation passes (it is a deadline since; see Limitations).
 <!-- results:end -->
@@ -107,14 +116,15 @@ number, which this run does not attempt.
 
 ### A note on the benchmark's splits
 
-PCBWorld ships D3 as train and test splits, but they overlap. The easy test split is the
-easy train split (99 of 99 boards identical), 7 of the 10 medium test boards and 8 of the
-10 hard test boards are also in train. Anyone tuning on train and reporting on test is
-reporting on boards they have seen. copperline was developed on the train pools, so before
-writing any router code `bench/splits.py` sealed 86 medium and 92 hard train boards
-(seed 20261110). Those sealed boards, plus the few test boards that are not in train, are
-the **held-out** tiers above. They were routed once, by the commit tagged `bench-freeze`.
-The easy tier was seen during development and is labelled that way.
+PCBWorld ships D3 as train and test splits, but every test board is also a train board:
+the easy test split is the easy train split (99 of 99), and all 10 medium and all 10 hard
+test boards appear in the corresponding train lists too (check: `bench/d3_pcbworld.json`).
+Anyone tuning on train and reporting on test is reporting on boards they have seen.
+copperline was developed on the train pools, so before writing any router code
+`bench/splits.py` sealed 86 medium and 92 hard train boards (seed 20261110). Those sealed
+boards are the **held-out** tiers above; the test boards add nothing held out, since they
+all sit in the development pools or in the sealed sets. The easy tier was seen during
+development and is labelled that way.
 
 5 of the 796 D3 board folders could not be rebuilt by the prep chain on this machine
 (0001, 0002, 0030, 0564, 0647) and are left out for both routers.

@@ -24,6 +24,7 @@ import collections
 import csv
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -140,6 +141,12 @@ def run_board(name, router, seed):
             "length_mm": round(st["length_mm"], 3)}
 
 
+def same_run(out):
+    """CSVs of the same run as `out`: same split, router and tag, any shard suffix."""
+    stem = re.sub(r"-shard\d+r?$", "", out.stem)
+    return [f for f in RESULTS.glob("*.csv") if re.sub(r"-shard\d+r?$", "", f.stem) == stem]
+
+
 def main():
     global CAP_S
     ap = argparse.ArgumentParser()
@@ -177,8 +184,8 @@ def main():
     if not a.force and a.shard:
         # Boards finished by any other run of this split/router (another shard, or the
         # unsharded CSV) are skipped too.
-        for f in RESULTS.glob(f"{a.split}-{a.router}*.csv"):
-            if f != out and "-v2" not in f.name:
+        for f in same_run(out):
+            if f != out:
                 with open(f) as fh:
                     for r in csv.DictReader(fh):
                         done.setdefault(r["board"], r)
@@ -190,7 +197,7 @@ def main():
             continue
         if a.shard:
             # Another worker may have finished this board since we started.
-            for f in RESULTS.glob(f"{a.split}-{a.router}*.csv"):
+            for f in same_run(out):
                 if f != out and n in f.read_text():
                     break
             else:

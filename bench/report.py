@@ -20,6 +20,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 RES = HERE / "results"
 ROUTERS = ["copperline", "freerouting"]
+# Boards that cannot be scored for one router through no fault of that router; dropped for
+# both. KiCad 9's ImportSpecctraSES returns false on Freerouting's session file for 0498.
+EXCLUDE = {"0498_kitspace_Spikeling_V2.1"}
 
 
 def load(split, router):
@@ -81,7 +84,7 @@ def rows_for(members, router):
         key = (split, router)
         if key not in cache:
             cache[key] = load(split, router)
-        if name in cache[key]:
+        if name in cache[key] and name not in EXCLUDE:
             out[name] = cache[key][name]
     return out
 
@@ -158,7 +161,26 @@ def main():
               "PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) reports mean DRC violations 0.09 on fully routed boards and routability 0.98 (mean fraction of nets routed). Clean-pass is not published, so this compares what can be compared:", "",
               f"- our single-seed run on test-a: {len(full)}/{len(fr)} boards fully routed, mean DRC violations on those {drv:.2f}",
               f"- clean-pass of our run: {sum(int(r['clean']) for r in fr.values())}/{len(fr)}", ""]
-    readme_blocks(lines, tier_stats, missed, routed)
+    # The current build (post-freeze fixes, hard time deadline at the default 90 s), rerun on
+    # the sealed sets: what a user of today's code gets. Not held out any more: the fixes
+    # were prompted by KiCad findings on these boards.
+    cur = {}
+    lines += ["", "## Current build on the sealed sets (default 90 s deadline)", "",
+              "The frozen run above is the held-out result. The post-freeze fixes (PTH pads on every layer, DRC bucket inflation, "
+              "time budget as a hard deadline) were prompted by KiCad findings on those boards, so this rerun is not held out; "
+              "it shows what today's code and defaults give.", "",
+              "| tier | boards | clean | median / p90 s | build |", "|---|---:|---:|---:|---|"]
+    for name, split in (("medium, held out", "sealed-b"), ("hard, held out", "sealed-c")):
+        rs = {k: v for k, v in load(split, "copperline-current").items() if k not in EXCLUDE}
+        if not rs:
+            continue
+        k = sum(int(r["clean"]) for r in rs.values())
+        t = sorted(float(r["route_s"] or 0) for r in rs.values())
+        builds = sorted({r.get("commit", "") for r in rs.values()})
+        w = wilson(k, len(rs))
+        cur[name] = (k, len(rs), statistics.median(t))
+        lines.append(f"| {name} | {len(rs)} | {k}/{len(rs)} = {k / len(rs):.2f} [{w[0]:.2f}, {w[1]:.2f}] | {statistics.median(t):.1f} / {t[int(0.9 * len(t))]:.1f} | {', '.join(builds)} |")
+    readme_blocks(lines, tier_stats, missed, routed, cur)
     # Failure classes.
     lines += ["", "## Why boards are not clean (paired boards)", "", "| router | tier | unconnected only | DRC violations | timeout / error |", "|---|---|---:|---:|---:|"]
     for name, members in tiers():
@@ -203,7 +225,7 @@ def main():
         write_chart(chart)
 
 
-def readme_blocks(lines, ts, missed, routed):
+def readme_blocks(lines, ts, missed, routed, cur=None):
     """Write the headline and the results tables into README.md between markers."""
     readme = HERE.parent / "README.md"
     if not readme.exists():
@@ -225,6 +247,10 @@ def readme_blocks(lines, ts, missed, routed):
                 f"{h['ka'] / h['n']:.0%} of the hard ones clean, against Freerouting's {m['kb'] / m['n']:.0%} and {h['kb'] / h['n']:.0%}**. "
                 f"Median time per board: {m['ma']:.0f} s against {m['mb']:.0f} s on the medium boards; on the hard ones copperline's median "
                 f"is {h['ma']:.0f} s, while Freerouting ran into its time cap on {timeouts} of {len(fr_hard)}.")
+    if cur and "medium, held out" in cur and "hard, held out" in cur:
+        (mk, mn, mm), (hk2, hn, hm) = cur["medium, held out"], cur["hard, held out"]
+        headline += (f" Those are the frozen build's numbers; today's build, with its default 90 s deadline, gets "
+                     f"{mk / mn:.0%} and {hk2 / hn:.0%} on the same boards (median {mm:.0f} s and {hm:.0f} s).")
     start, end = "<!-- headline:start -->", "<!-- headline:end -->"
     if start in text:
         text = text[: text.index(start) + len(start)] + "\n" + headline + "\n" + text[text.index(end):]
