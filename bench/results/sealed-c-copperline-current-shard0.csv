@@ -1,3 +1,6 @@
 board,router,commit,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
 0389_kitspace_bomanz,copperline,bench-freeze-31-g7c445d4,,ok,1,0,0,0,,59.186,0.0,330,32,635.725
 0395_Arduino_Lipo_Storage_Discharger_Lipo_Storage_Discharger,copperline,bench-freeze-31-g7c445d4,,ok,1,0,0,0,,7.004,0.0,315,14,861.143
+0397_wt-rpm_C.H.I.P,copperline,bench-freeze-31-g7c445d4,,ok,0,13,0,0,,16.639,0.0,173,4,326.66
+0404_Omega2-mini-dock_Omega2 mini-dock,copperline,bench-freeze-31-g7c445d4,,ok,1,0,0,0,,1.049,0.0,249,5,441.78
+0406_QRPCard_QRPCard,copperline,bench-freeze-31-g7c445d4,,ok,1,0,0,0,,3.261,0.0,298,25,697.026

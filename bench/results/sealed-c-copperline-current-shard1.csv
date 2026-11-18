@@ -9,3 +9,4 @@ board,router,commit,seed,status,clean,unconnected,violations,baseline_violations
 0418_AVR-ZIF-Programmer_AVR-ZIF-Prog,copperline,bench-freeze-31-g7c445d4-dirty,,ok,1,0,0,0,,2.361,0.0,384,15,1273.11
 0424_rf-biscuit_rf_biscuit,copperline,bench-freeze-31-g7c445d4-dirty,,ok,1,0,0,0,,2.695,0.0,193,0,141.188
 0431_bldc-gimbal-1d_r1_gimbal-board,copperline,bench-freeze-31-g7c445d4-dirty,,ok,1,0,0,0,,4.629,0.0,361,32,772.794
+0436_raspberry-pi-rfm69_rfm69-rpi,copperline,bench-freeze-31-g7c445d4-dirty,,ok,1,0,0,0,,39.62,0.0,498,64,1215.232

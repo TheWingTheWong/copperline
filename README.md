@@ -11,21 +11,41 @@ routes boards on your machine with no server.
 ![copperline routing a two-layer QFP-48 breakout: first pass with nets overlapping, then negotiation until no two nets share copper](assets/routing.gif)
 
 <!-- headline:start -->
-On 86 medium and 90 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 58% of the hard ones clean, against Freerouting's 65% and 40%**. Median time per board: 3 s against 34 s on the medium boards; on the hard ones copperline's median is 84 s, while Freerouting ran into its time cap on 46 of 90. Those are the frozen build's numbers; today's build, with its default 90 s deadline, gets 97% and 100% on the same boards (median 1 s and 3 s).
+On 86 medium and 90 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 58% of the hard ones clean, against Freerouting's 65% and 40%**. Median time per board: 3 s against 34 s on the medium boards; on the hard ones copperline's median is 84 s, while Freerouting ran into its time cap on 46 of 90. Those are the frozen build's numbers; today's build, with its default 90 s deadline, gets 95% and 93% on the same boards (median 1 s and 3 s).
 <!-- headline:end -->
 
 ![Clean-pass rate per tier, copperline vs Freerouting](assets/headline.svg)
 
-## Results
+## Try it
 
-Every board below is a real open-hardware design from [PCBench](https://github.com/PCBench/PCBench),
-prepared with [PCBWorld](https://github.com/LGAI-Research/PCBWorld)'s own pipeline (the D3 benchmark):
-the original routing is stripped, each net keeps the width its designer used, and the
-project's design rules come along in the `.kicad_pro`. Both routers get the same input files.
-A board counts as **clean** only when KiCad 9's own DRC (`kicad-cli pcb drc`, error
-severity) reports zero unconnected items and zero violations on the routed file. That is
-PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs it
-(`-mp 10`, headless, 1800 s cap), through KiCad's own DSN export and SES import.
+```sh
+cargo install --git https://github.com/TheWingTheWong/copperline
+copperline route board.kicad_pcb -o board-routed.kicad_pcb
+```
+
+The design rules are read from `board.kicad_pro` next to the board (net classes, track
+widths, clearances, via sizes, board minimums). Without it, KiCad's defaults apply. The
+output is the input file byte for byte, with the new `segment` and `via` items appended
+before the final parenthesis, so it opens in KiCad 9 and diffs cleanly.
+
+A board that ships with the repo:
+
+```sh
+cargo run --release -- route examples/mcu48.kicad_pcb -o /tmp/mcu48-routed.kicad_pcb --stats /tmp/stats.json
+```
+
+```
+pitch 0.087 mm, 42 nets, 62/62 connections, 18 iterations, 544 tracks, 54 vias, 1267.9 mm, 5440 ms
+```
+
+`scripts/check_examples.sh` routes both bundled boards and scores them with `kicad-cli`
+(both come back with zero violations and zero unconnected items).
+
+Other commands: `copperline info` (what the parser saw), `copperline svg` and
+`copperline render` (pictures of a board), `--frames DIR` on `route` (one image per
+routing step; `scripts/animate.sh` turns them into the GIF above).
+
+## Results
 
 <!-- results:start -->
 | tier | boards | copperline clean | Freerouting clean | Freerouting, conversion artifacts forgiven | copperline median / p90 s | Freerouting median / p90 s | both clean | only copperline | only Freerouting |
@@ -42,7 +62,7 @@ PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs
 | medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 1 |
 | hard, held out | 90 | 52/90 = 0.58 [0.47, 0.67] | 1 |
 
-copperline's own DRC vs KiCad: KiCad found errors in copperline's copper on 2 of 717 routed board runs (0282_WordClock_v2.0_WordClock_v2, 0595_LoRaPP_loramod).
+copperline's own DRC vs KiCad: KiCad found errors in copperline's copper on 2 of 738 routed board runs (0282_WordClock_v2.0_WordClock_v2, 0595_LoRaPP_loramod).
 
 #### Parity with PCBWorld's published Freerouting run (D3-A)
 
@@ -58,11 +78,20 @@ The frozen run above is the held-out result. The post-freeze fixes (PTH pads on 
 
 | tier | boards | clean | median / p90 s | build |
 |---|---:|---:|---:|---|
-| medium, held out | 29 | 28/29 = 0.97 [0.83, 0.99] | 0.8 / 2.6 | bench-freeze-30-g43cf691 |
-| hard, held out | 4 | 4/4 = 1.00 [0.51, 1.00] | 2.8 / 9.1 | bench-freeze-31-g7c445d4-dirty |
+| medium, held out | 40 | 38/40 = 0.95 [0.83, 0.99] | 0.8 / 3.2 | bench-freeze-30-g43cf691 |
+| hard, held out | 14 | 13/14 = 0.93 [0.69, 0.99] | 3.1 / 16.6 | bench-freeze-31-g7c445d4, bench-freeze-31-g7c445d4-dirty |
 
 The slowest completed held-out copperline run took 1774 s; the frozen build ran into the bench's 1800 s cap on 0672_DAC-ADAU1966_DAC-ADAU1966, because its time budget was only checked between negotiation passes (it is a deadline since; see Limitations).
 <!-- results:end -->
+
+**Setup.** Every board in these tables is a real open-hardware design from [PCBench](https://github.com/PCBench/PCBench),
+prepared with [PCBWorld](https://github.com/LGAI-Research/PCBWorld)'s own pipeline (the D3 benchmark):
+the original routing is stripped, each net keeps the width its designer used, and the
+project's design rules come along in the `.kicad_pro`. Both routers get the same input files.
+A board counts as **clean** only when KiCad 9's own DRC (`kicad-cli pcb drc`, error
+severity) reports zero unconnected items and zero violations on the routed file. That is
+PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs it
+(`-mp 10`, headless, 1800 s cap), through KiCad's own DSN export and SES import.
 
 How to read this. Clean-pass comes with a Wilson 95% interval, then the median and
 90th-percentile route time per board. "Both / only" count the boards each router got clean.
@@ -140,35 +169,6 @@ development and is labelled that way.
 
 5 of the 796 D3 board folders could not be rebuilt by the prep chain on this machine
 (0001, 0002, 0030, 0564, 0647) and are left out for both routers.
-
-## Try it
-
-```sh
-cargo install --git https://github.com/TheWingTheWong/copperline
-copperline route board.kicad_pcb -o board-routed.kicad_pcb
-```
-
-The design rules are read from `board.kicad_pro` next to the board (net classes, track
-widths, clearances, via sizes, board minimums). Without it, KiCad's defaults apply. The
-output is the input file byte for byte, with the new `segment` and `via` items appended
-before the final parenthesis, so it opens in KiCad 9 and diffs cleanly.
-
-A board that ships with the repo:
-
-```sh
-cargo run --release -- route examples/mcu48.kicad_pcb -o /tmp/mcu48-routed.kicad_pcb --stats /tmp/stats.json
-```
-
-```
-pitch 0.087 mm, 42 nets, 62/62 connections, 18 iterations, 544 tracks, 54 vias, 1267.9 mm, 5440 ms
-```
-
-`scripts/check_examples.sh` routes both bundled boards and scores them with `kicad-cli`
-(both come back with zero violations and zero unconnected items).
-
-Other commands: `copperline info` (what the parser saw), `copperline svg` and
-`copperline render` (pictures of a board), `--frames DIR` on `route` (one image per
-routing step; `scripts/animate.sh` turns them into the GIF above).
 
 ## How it works
 

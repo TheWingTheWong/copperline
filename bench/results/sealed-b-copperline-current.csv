@@ -37,3 +37,6 @@ board,router,commit,seed,status,clean,unconnected,violations,baseline_violations
 0219_tbd_tbd,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,0.995,0.0,124,17,106.9
 0220_makerspace-emonth_resistor_board,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,2.637,0.0,224,8,821.139
 0221_akuhei_akuhei,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,2.353,0.0,186,12,255.701
+0223_Teensy-3.5-Breakout-Boaard_PropShield_Uno,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,7.956,0.0,300,27,1000.684
+0229_Minitel_video_output_stage,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,0.741,0.0,151,0,574.465
+0237_Paperino_HW_Paperino_shield,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,9.774,0.0,128,9,469.167
