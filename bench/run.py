@@ -40,10 +40,12 @@ FREEROUTING_JAR = os.environ.get("FREEROUTING_JAR", str(ROOT.parent.parent / "re
 COPPERLINE = os.environ.get("COPPERLINE", str(ROOT / "target/release/copperline"))
 D3_ROOT = Path(os.environ.get("D3_ROOT", str(ROOT.parent.parent / "research/d3work/pcbench_work/newdrc")))
 WORK = HERE / "work"
+# Build provenance for copperline rows (the binary must be built from this checkout).
+COMMIT = subprocess.run(["git", "describe", "--always", "--dirty", "--tags"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
 RESULTS = HERE / "results"
 CAP_S = 1800
 
-FIELDS = ["board", "router", "seed", "status", "clean", "unconnected", "violations", "baseline_violations",
+FIELDS = ["board", "router", "commit", "seed", "status", "clean", "unconnected", "violations", "baseline_violations",
           "violation_types", "route_s", "convert_s", "tracks", "vias", "length_mm"]
 
 
@@ -119,7 +121,7 @@ def run_board(name, router, seed):
     base = collections.Counter(json.loads(bfile.read_text()))
     dst = wdir / "routed.kicad_pcb"
     shutil.copy(wdir / "input.kicad_pro", wdir / "routed.kicad_pro")
-    row = {"board": name, "router": router, "seed": "" if seed is None else seed,
+    row = {"board": name, "router": router, "commit": COMMIT if router == "copperline" else "freerouting-2.1.0", "seed": "" if seed is None else seed,
            "baseline_violations": sum(base.values())}
     try:
         route_s, conv_s = ROUTERS[router](src, dst, seed)
