@@ -245,8 +245,8 @@ def readme_blocks(lines, ts, missed, routed):
 
 
 def write_chart(chart):
-    W, H = 760, 330
-    left, top, bw = 70, 60, 46
+    W, H = 760, 350
+    left, top, bw = 70, 84, 46
     gw = (W - left - 40) / len(chart)
     ph = 190
     y = lambda v: top + ph * (1 - v)
@@ -265,8 +265,8 @@ def write_chart(chart):
             o.append(f'<rect x="{x:.1f}" y="{y(pv):.1f}" width="{bw}" height="{ph * pv:.1f}" fill="{col[router]}"/>')
             cx = x + bw / 2
             o.append(f'<line x1="{cx:.1f}" x2="{cx:.1f}" y1="{y(wv[0]):.1f}" y2="{y(wv[1]):.1f}" stroke="#1d2733" stroke-width="1.2"/>')
-            o.append(f'<text x="{cx:.1f}" y="{y(pv) - 6 if y(wv[1]) > y(pv) - 18 else y(wv[1]) - 5:.1f}" font-size="12" text-anchor="middle" fill="#1d2733" font-weight="bold">{pv:.2f}</text>')
-            o.append(f'<text x="{cx:.1f}" y="{top + ph + 16:.1f}" font-size="10.5" text-anchor="middle" fill="#56606e">{med:.1f} s</text>')
+            o.append(f'<text x="{cx:.1f}" y="{y(wv[1]) - 6:.1f}" font-size="12" text-anchor="middle" fill="#1d2733" font-weight="bold">{pv:.2f}</text>')
+            o.append(f'<text x="{cx:.1f}" y="{top + ph + 16:.1f}" font-size="10.5" text-anchor="middle" fill="#56606e">{f"{med:.0f} s (cap)" if med >= 599 else f"{med:.1f} s"}</text>')
         o.append(f'<text x="{gx:.1f}" y="{top + ph + 34:.1f}" font-size="12.5" text-anchor="middle" fill="#1d2733">{name}</text>')
         o.append(f'<text x="{gx:.1f}" y="{top + ph + 50:.1f}" font-size="11" text-anchor="middle" fill="#56606e">n = {n}</text>')
     lx = left
