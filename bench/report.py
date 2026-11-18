@@ -218,17 +218,27 @@ def readme_blocks(lines, ts, missed, routed):
     hard_all = allc["hard, held out"]
     hk = sum(int(r["clean"]) for r in hard_all.values())
     slow = max(float(r["route_s"] or 0) for name in ("medium, held out", "hard, held out") for r in allc[name].values())
+    fr_hard = rows_for(dict(tiers())["hard, held out"], "freerouting")
+    timeouts = sum(1 for r in fr_hard.values() if r["status"] == "timeout")
     headline = (f"On {m['n']} medium and {h['n']} hard open-hardware boards it never saw during development, scored by "
                 f"KiCad 9's own DRC on the same input files, copperline routes **{m['ka'] / m['n']:.0%} of the medium boards and "
-                f"{h['ka'] / h['n']:.0%} of the hard ones clean, against Freerouting's {m['kb'] / m['n']:.0%} and {h['kb'] / h['n']:.0%}**, "
-                f"with a median of {m['ma']:.1f} s and {h['ma']:.0f} s per board against {m['mb']:.0f} s and {h['mb']:.0f} s.")
+                f"{h['ka'] / h['n']:.0%} of the hard ones clean, against Freerouting's {m['kb'] / m['n']:.0%} and {h['kb'] / h['n']:.0%}**. "
+                f"Median time per board: {m['ma']:.0f} s against {m['mb']:.0f} s on the medium boards; on the hard ones copperline's median "
+                f"is {h['ma']:.0f} s, while Freerouting ran into its time cap on {timeouts} of {len(fr_hard)}.")
     start, end = "<!-- headline:start -->", "<!-- headline:end -->"
     if start in text:
         text = text[: text.index(start) + len(start)] + "\n" + headline + "\n" + text[text.index(end):]
     body = "\n".join(lines[lines.index("| tier | boards | copperline clean | Freerouting clean | Freerouting, conversion artifacts forgiven | copperline median / p90 s | Freerouting median / p90 s | both clean | only copperline | only Freerouting |"):])
     start, end = "<!-- results:start -->", "<!-- results:end -->"
-    extra = (f"\n\nThe slowest held-out copperline run took {slow:.0f} s. Hard tier, all {len(hard_all)} boards copperline routed "
-             f"(including those Freerouting has no result for): {hk}/{len(hard_all)} = {hk / len(hard_all):.2f} clean.")
+    held = [r for name in ("medium, held out", "hard, held out") for r in allc[name].values()]
+    capped = [r["board"] for r in held if r["status"] == "timeout"]
+    rest = max(float(r["route_s"] or 0) for r in held if r["status"] != "timeout")
+    extra = (f"\n\nThe slowest completed held-out copperline run took {rest:.0f} s"
+             + (f"; the frozen build ran into the bench's 1800 s cap on {', '.join(capped)}, because its time budget was "
+                "only checked between negotiation passes (it is a deadline since; see Limitations)." if capped else "."))
+    if len(hard_all) != h["n"]:
+        extra += (f" Hard tier, all {len(hard_all)} boards copperline routed (including those Freerouting has no result for): "
+                  f"{hk}/{len(hard_all)} = {hk / len(hard_all):.2f} clean.")
     if start in text:
         text = text[: text.index(start) + len(start)] + "\n" + body.replace("## ", "#### ") + extra + "\n" + text[text.index(end):]
     readme.write_text(text)

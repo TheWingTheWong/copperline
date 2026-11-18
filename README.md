@@ -9,7 +9,7 @@ routes boards on your machine with no server.
 ![copperline routing a two-layer QFP-48 breakout: first pass with nets overlapping, then negotiation until no two nets share copper](assets/routing.gif)
 
 <!-- headline:start -->
-On 86 medium and 75 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 59% of the hard ones clean, against Freerouting's 65% and 44%**, with a median of 3.0 s and 73 s per board against 34 s and 590 s.
+On 86 medium and 91 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 58% of the hard ones clean, against Freerouting's 65% and 40%**. Median time per board: 3 s against 34 s on the medium boards; on the hard ones copperline's median is 80 s, while Freerouting ran into its time cap on 46 of 91.
 <!-- headline:end -->
 
 ![Clean-pass rate per tier, copperline vs Freerouting](assets/headline.svg)
@@ -30,7 +30,7 @@ PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | easy (seen in dev) | 96 | 96/96 = 1.00 [0.96, 1.00] | 81/96 = 0.84 [0.76, 0.90] | 85/96 = 0.89 [0.81, 0.93] | 0.4 / 2.2 | 22.1 / 63.6 | 81 | 15 | 0 |
 | medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 56/86 = 0.65 [0.55, 0.74] | 61/86 = 0.71 [0.61, 0.79] | 3.0 / 18.8 | 33.5 / 541.3 | 54 | 25 | 2 |
-| hard, held out | 75 | 44/75 = 0.59 [0.47, 0.69] | 33/75 = 0.44 [0.33, 0.55] | 33/75 = 0.44 [0.33, 0.55] | 73.4 / 358.2 | 589.8 / 600.0 | 28 | 16 | 5 |
+| hard, held out | 91 | 53/91 = 0.58 [0.48, 0.68] | 36/91 = 0.40 [0.30, 0.50] | 36/91 = 0.40 [0.30, 0.50] | 79.9 / 395.0 | 600.0 / 600.0 | 31 | 22 | 5 |
 
 #### copperline on every board of each tier (not only those Freerouting finished)
 
@@ -50,7 +50,7 @@ PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) rep
 - clean-pass of our run: 81/96
 
 
-The slowest held-out copperline run took 1800 s. Hard tier, all 91 boards copperline routed (including those Freerouting has no result for): 53/91 = 0.58 clean.
+The slowest completed held-out copperline run took 1774 s; the frozen build ran into the bench's 1800 s cap on 0672_DAC-ADAU1966_DAC-ADAU1966, because its time budget was only checked between negotiation passes (it is a deadline since; see Limitations).
 <!-- results:end -->
 
 How to read this. Clean-pass comes with a Wilson 95% interval, then the median and
@@ -135,7 +135,7 @@ cargo run --release -- route examples/mcu48.kicad_pcb -o /tmp/mcu48-routed.kicad
 ```
 
 ```
-pitch 0.087 mm, 42 nets, 62/62 connections, 18 iterations, 544 tracks, 54 vias, 1267.9 mm, 11707 ms
+pitch 0.087 mm, 42 nets, 62/62 connections, 18 iterations, 544 tracks, 54 vias, 1267.9 mm, 5440 ms
 ```
 
 `scripts/check_examples.sh` routes both bundled boards and scores them with `kicad-cli`
@@ -237,10 +237,12 @@ splits are in `bench/splits.json`.
   held-out failures above come from.
 - copperline reads a `.kicad_pcb` the way KiCad 9 writes it. Older files should be opened
   and saved once in KiCad 9 first.
-- Hard boards can take minutes, because A* floods behind large blocked areas. The time
-  budget (`--budget`, 90 s by default) bounds negotiation only. The cleanup reroutes and
-  the finer-grid retries that follow can run past it; the slowest held-out run is in the
-  results above. The budget is wall-clock time, so a loaded machine routes less within it.
+- Hard boards can take minutes, because A* floods behind large blocked areas.
+  `--budget` (90 s by default) is a wall-clock deadline: the search stops starting new
+  connections once it is spent, and the cleanup drops nets still in conflict past 1.25x of
+  it, so the output stays legal but may be incomplete. The frozen build used for the
+  held-out run checked the budget only between negotiation passes, which is why one board
+  above ran to the bench's cap. A loaded machine routes less within the same budget.
 - The browser demo runs the same code single-threaded; dense boards take a while there.
 
 ## References
