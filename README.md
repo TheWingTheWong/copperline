@@ -1,5 +1,7 @@
 # copperline
 
+[![Launch video](assets/launch.png)](assets/launch.mp4)
+
 A PCB autorouter written from scratch in Rust: it reads a KiCad 9 board, routes every
 connection on a grid with negotiated congestion (PathFinder), checks the result against
 exact copper geometry, and writes plain KiCad tracks and vias back into the file. It also
