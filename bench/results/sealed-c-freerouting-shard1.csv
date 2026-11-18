@@ -29,3 +29,4 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0627_divergence_meter_dm_control,freerouting,,timeout,0,,,0,,600.0,,,,
 0639_pwm-2420-lus_pwm-2420-lus,freerouting,,timeout,0,,,0,,600.0,,,,
 0657_mppt-2420-hpx_mppt-2420-hpx,freerouting,,timeout,0,,,0,,600.0,,,,
+0672_DAC-ADAU1966_DAC-ADAU1966,freerouting,,timeout,0,,,0,,600.0,,,,

@@ -5,3 +5,18 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0407_MAGFest-2017-Swadges_magfest_badges,freerouting,,ok,1,0,0,0,,131.001,12.368,372,22,1283.658
 0413_bmw-ibus-bluetooth_bmw_bt_cdcemu_analog,freerouting,,ok,1,0,0,0,,87.904,13.49,292,3,396.158
 0418_AVR-ZIF-Programmer_AVR-ZIF-Prog,freerouting,,ok,1,0,0,0,,95.274,14.812,335,1,1528.126
+0429_R1007_R1007,freerouting,,ok,1,0,0,0,,362.144,21.117,345,16,829.212
+0436_raspberry-pi-rfm69_rfm69-rpi,freerouting,,timeout,0,,,0,,600.0,,,,
+0444_audprog_audprog_v2,freerouting,,ok,1,0,0,0,,147.671,24.833,408,10,768.334
+0459_BirdAttractor_BirdAttractor_RevC,freerouting,,ok,1,0,0,0,,124.565,20.395,434,15,1153.065
+0470_ChirpHardware_chirp,freerouting,,timeout,0,,,0,,600.0,,,,
+0481_Hardware_Playground_nrf52832_uno,freerouting,,timeout,0,,,0,,600.0,,,,
+0486_WyoManiacalDisplay_WyoDisplay,freerouting,,ok,1,0,0,0,,84.908,10.715,326,5,906.521
+0498_kitspace_Spikeling_V2.1,freerouting,,"error: kicad_tool ses failed: ./src/common/stdpbase.cpp(59): assert """"traits"""" failed in Get(): create wxApp before call",0,,,0,,,,,,
+0508_kitspace_sympetrum-v2%20NFF1.1,freerouting,,ok,0,2,0,0,,312.665,6.62,499,18,960.435
+0516_MicroMaple_MicroMaple,freerouting,,timeout,0,,,0,,600.0,,,,
+0529_kitspace_flypi,freerouting,,timeout,0,,,0,,600.0,,,,
+0535_anima_MotorDrive,freerouting,,ok,1,0,0,0,,312.586,18.022,648,19,1588.356
+0540_CPU-Power-Supply-Mod_CPU_Power_Supply_Mod,freerouting,,timeout,0,,,0,,600.0,,,,
+0552_wavegen_wavegen-alt,freerouting,,timeout,0,,,0,,600.0,,,,
+0562_MAVRIC_Hardware__autosave-Motherboard,freerouting,,timeout,0,,,0,,600.0,,,,

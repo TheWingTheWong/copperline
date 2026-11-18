@@ -9,7 +9,7 @@ routes boards on your machine with no server.
 ![copperline routing a two-layer QFP-48 breakout: first pass with nets overlapping, then negotiation until no two nets share copper](assets/routing.gif)
 
 <!-- headline:start -->
-On 86 medium and 51 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 65% of the hard ones clean, against Freerouting's 65% and 45%**, with a median of 3.0 s and 35 s per board against 34 s and 313 s.
+On 86 medium and 75 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 59% of the hard ones clean, against Freerouting's 65% and 44%**, with a median of 3.0 s and 73 s per board against 34 s and 590 s.
 <!-- headline:end -->
 
 ![Clean-pass rate per tier, copperline vs Freerouting](assets/headline.svg)
@@ -30,7 +30,7 @@ PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | easy (seen in dev) | 96 | 96/96 = 1.00 [0.96, 1.00] | 81/96 = 0.84 [0.76, 0.90] | 85/96 = 0.89 [0.81, 0.93] | 0.4 / 2.2 | 22.1 / 63.6 | 81 | 15 | 0 |
 | medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 56/86 = 0.65 [0.55, 0.74] | 61/86 = 0.71 [0.61, 0.79] | 3.0 / 18.8 | 33.5 / 541.3 | 54 | 25 | 2 |
-| hard, held out | 51 | 33/51 = 0.65 [0.51, 0.76] | 23/51 = 0.45 [0.32, 0.59] | 23/51 = 0.45 [0.32, 0.59] | 35.2 / 271.2 | 312.8 / 960.1 | 19 | 14 | 4 |
+| hard, held out | 75 | 44/75 = 0.59 [0.47, 0.69] | 33/75 = 0.44 [0.33, 0.55] | 33/75 = 0.44 [0.33, 0.55] | 73.4 / 358.2 | 589.8 / 600.0 | 28 | 16 | 5 |
 
 #### copperline on every board of each tier (not only those Freerouting finished)
 
@@ -38,9 +38,9 @@ PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs
 |---|---:|---:|---:|
 | easy (seen in dev) | 96 | 96/96 = 1.00 [0.96, 1.00] | 0 |
 | medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 1 |
-| hard, held out | 87 | 52/87 = 0.60 [0.49, 0.69] | 1 |
+| hard, held out | 91 | 53/91 = 0.58 [0.48, 0.68] | 1 |
 
-copperline's own DRC vs KiCad: KiCad found errors in copperline's copper on 2 of 681 routed board runs (0282_WordClock_v2.0_WordClock_v2, 0595_LoRaPP_loramod).
+copperline's own DRC vs KiCad: KiCad found errors in copperline's copper on 2 of 684 routed board runs (0282_WordClock_v2.0_WordClock_v2, 0595_LoRaPP_loramod).
 
 #### Parity with PCBWorld's published Freerouting run (D3-A)
 
@@ -50,7 +50,7 @@ PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) rep
 - clean-pass of our run: 81/96
 
 
-The slowest held-out copperline run took 1058 s. Hard tier, all 87 boards copperline routed (including those Freerouting has no result for): 52/87 = 0.60 clean.
+The slowest held-out copperline run took 1800 s. Hard tier, all 91 boards copperline routed (including those Freerouting has no result for): 53/91 = 0.58 clean.
 <!-- results:end -->
 
 How to read this. Clean-pass comes with a Wilson 95% interval, then the median and

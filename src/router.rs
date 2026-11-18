@@ -357,6 +357,8 @@ pub struct Router<'a> {
     routes: Vec<Route>,
     /// Pads found unreachable on the static masks (per net); never searched again.
     dead: Vec<Vec<bool>>,
+    /// Start of `run`, for the hard deadline.
+    start: Clock,
     // search scratch
     dist: Vec<f32>,
     parent: Vec<u32>,
@@ -425,6 +427,7 @@ impl<'a> Router<'a> {
             nets: Vec::new(),
             routes: Vec::new(),
             dead: Vec::new(),
+            start: Clock::now(),
             dist: vec![f32::INFINITY; nl * n],
             parent: vec![u32::MAX; nl * n],
             target: vec![0; nl * n],
@@ -854,6 +857,9 @@ impl<'a> Router<'a> {
         route.connected = 1;
         let mut tree: Vec<usize> = Vec::new();
         loop {
+            if self.start.ms() / 1000.0 > self.prm.time_budget_s * 1.25 {
+                break; // deadline: leave the rest of this net unconnected
+            }
             let remaining: Vec<usize> = (0..npads).filter(|&k| !in_tree[k] && !access[k].is_empty() && !self.dead[ni][k]).collect();
             if remaining.is_empty() {
                 break;
@@ -1160,6 +1166,7 @@ impl<'a> Router<'a> {
 
     pub fn run(mut self) -> Output {
         let t0 = Clock::now();
+        self.start = t0;
         let mut stats = Stats { pitch: self.grid.g, cells: self.grid.cells() * self.grid.nl, nets: self.nets.len(), ..Default::default() };
         let order = self.net_order();
         let obs = Obstacles::new(self.board, self.rules);
@@ -1172,6 +1179,11 @@ impl<'a> Router<'a> {
             for (k, &ni) in order.iter().enumerate() {
                 if !dirty[ni] {
                     continue;
+                }
+                // Hard deadline even inside a pass: big boards can spend the whole budget
+                // in the first one. Nets not reached keep their previous route (or none).
+                if t0.ms() / 1000.0 > self.prm.time_budget_s {
+                    break;
                 }
                 self.rip_up(ni);
                 self.route_net(ni, if it == 0 { 0.0 } else { pres }, false);
@@ -1237,11 +1249,16 @@ impl<'a> Router<'a> {
         }
         // Legalise: nets still in conflict are rerouted with hard blocking, then the exact
         // DRC has the last word.
+        // The budget is a deadline: past 1.25x of it, nets in conflict are dropped instead of
+        // rerouted, so a board never runs far over (the output stays legal either way).
+        let over = |t0: &Clock, prm: &Params| t0.ms() / 1000.0 > prm.time_budget_s * 1.25;
         for ni in self.net_order() {
             if !self.conflicts(ni).is_empty() {
                 self.rip_up(ni);
-                self.route_net(ni, pres, true);
-                self.stamp_route(ni);
+                if !over(&t0, &self.prm) {
+                    self.route_net(ni, pres, true);
+                    self.stamp_route(ni);
+                }
             }
         }
         for round in 0..3 {
@@ -1254,7 +1271,7 @@ impl<'a> Router<'a> {
             for ni in self.net_order() {
                 if bad.contains(&self.nets[ni].id) {
                     self.rip_up(ni);
-                    if round < 2 {
+                    if round < 2 && !over(&t0, &self.prm) {
                         self.route_net(ni, pres, true);
                         self.stamp_route(ni);
                     } else {

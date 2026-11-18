@@ -1,0 +1,12 @@
+board,router,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
+0562_MAVRIC_Hardware__autosave-Motherboard,freerouting,,timeout,0,,,0,,600.0,,,,
+0566_TinyTracker_ub-minimal,freerouting,,timeout,0,,,0,,600.0,,,,
+0580_nodemcu-basecamp_NodeMCU Basecamp,freerouting,,timeout,0,,,0,,600.0,,,,
+0593_vhf-radio_exp-1,freerouting,,ok,1,0,0,0,,400.78,75.859,719,19,1127.428
+0599_RGBMatrixPanelCPLD-PhotonBackpack_RGBMatrixPanel_CPLD,freerouting,,timeout,0,,,0,,600.0,,,,
+0605_recalbox-gpio-board_board,freerouting,,timeout,0,,,0,,600.0,,,,
+0613_Teensy-3.5-Breakout-Boaard_TeensyMegaIoShield,freerouting,,timeout,0,,,0,,600.0,,,,
+0624_elbsupply_elbsupply,freerouting,,timeout,0,,,0,,600.0,,,,
+0629_Hardware_Playground_BL_PCB_latest,freerouting,,ok,1,0,0,0,,284.696,14.507,696,11,1934.729
+0655_ADC-PCM4202-SE_ADC-PCM4202-SE,freerouting,,timeout,0,,,0,,600.0,,,,
+0666_kitspace_d20_tri_r0.3,freerouting,,timeout,0,,,0,,600.0,,,,

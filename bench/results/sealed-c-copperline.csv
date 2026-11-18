@@ -89,3 +89,4 @@ board,router,seed,status,clean,unconnected,violations,baseline_violations,violat
 0657_mppt-2420-hpx_mppt-2420-hpx,copperline,,ok,0,41,0,0,,1773.54,0.0,1433,178,3220.408
 0658_sweet-sixteen_sweet-sixteen,copperline,,ok,1,0,0,0,,73.44,0.0,1776,207,4524.389
 0666_kitspace_d20_tri_r0.3,copperline,,ok,0,222,0,0,,204.336,0.0,2327,149,1604.616
+0672_DAC-ADAU1966_DAC-ADAU1966,copperline,,timeout,0,,,0,,1800,,,,
