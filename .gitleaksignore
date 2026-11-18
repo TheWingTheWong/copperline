@@ -1,0 +1,4 @@
+# False positives: PCBench board names containing "mechkeys" in bench/splits.json
+e9bb17cb6e5dc68793ea6baac33694d4040e97b4:bench/splits.json:generic-api-key:56
+e9bb17cb6e5dc68793ea6baac33694d4040e97b4:bench/splits.json:generic-api-key:141
+e9bb17cb6e5dc68793ea6baac33694d4040e97b4:bench/splits.json:generic-api-key:561
