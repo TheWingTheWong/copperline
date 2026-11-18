@@ -1,6 +1,4 @@
 board,router,type,class
-0282_WordClock_v2.0_WordClock_v2,copperline,shorting_items,routing
-0595_LoRaPP_loramod,copperline,clearance,routing
 0021_RPi-PWM-Fan-interface_RPi PWM Fan interface,freerouting,shorting_items,text
 0026_PCB_constant_current_ac_hv,freerouting,clearance,text
 0026_PCB_constant_current_ac_hv,freerouting,clearance,text

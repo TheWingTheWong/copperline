@@ -270,8 +270,9 @@ def readme_blocks(lines, ts, missed, routed, cur=None):
                 f"is {h['ma']:.0f} s, while Freerouting ran into its time cap on {timeouts} of {len(fr_hard)}.")
     if cur and "medium, held out" in cur and "hard, held out" in cur:
         (mk, mn, mm), (hk2, hn, hm) = cur["medium, held out"], cur["hard, held out"]
-        headline += (f" Those are the frozen build's numbers; today's build, with its default 90 s deadline, gets "
-                     f"{mk / mn:.0%} and {hk2 / hn:.0%} on the same boards (median {mm:.0f} s and {hm:.0f} s).")
+        headline += (f" Those are the frozen build's numbers, measured with both routers sharing a loaded laptop. Today's build, "
+                     f"rerun on the same boards on a quiet machine with its default 90 s deadline, gets {mk / mn:.0%} and {hk2 / hn:.0%} "
+                     f"(median {mm:.0f} s and {hm:.0f} s); Freerouting was not rerun, so that pair is not head to head.")
     start, end = "<!-- headline:start -->", "<!-- headline:end -->"
     if start in text:
         text = text[: text.index(start) + len(start)] + "\n" + headline + "\n" + text[text.index(end):]

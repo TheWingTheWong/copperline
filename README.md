@@ -11,7 +11,7 @@ routes boards on your machine with no server.
 ![copperline routing a two-layer QFP-48 breakout: first pass with nets overlapping, then negotiation until no two nets share copper](assets/routing.gif)
 
 <!-- headline:start -->
-On 86 medium and 90 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 58% of the hard ones clean, against Freerouting's 65% and 40%**. Median time per board: 3 s against 34 s on the medium boards; on the hard ones copperline's median is 84 s, while Freerouting ran into its time cap on 46 of 90. Those are the frozen build's numbers; today's build, with its default 90 s deadline, gets 95% and 93% on the same boards (median 1 s and 3 s).
+On 86 medium and 90 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 58% of the hard ones clean, against Freerouting's 65% and 40%**. Median time per board: 3 s against 34 s on the medium boards; on the hard ones copperline's median is 84 s, while Freerouting ran into its time cap on 46 of 90. Those are the frozen build's numbers, measured with both routers sharing a loaded laptop. Today's build, rerun on the same boards on a quiet machine with its default 90 s deadline, gets 94% and 79% (median 1 s and 10 s); Freerouting was not rerun, so that pair is not head to head.
 <!-- headline:end -->
 
 ![Clean-pass rate per tier, copperline vs Freerouting](assets/headline.svg)
@@ -62,7 +62,7 @@ routing step; `scripts/animate.sh` turns them into the GIF above).
 | medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 1 |
 | hard, held out | 90 | 52/90 = 0.58 [0.47, 0.67] | 1 |
 
-copperline's own DRC vs KiCad: KiCad found errors in copperline's copper on 2 of 738 routed board runs (0282_WordClock_v2.0_WordClock_v2, 0595_LoRaPP_loramod).
+copperline's own DRC vs KiCad: KiCad found errors in copperline's copper on 2 of 861 routed board runs (0282_WordClock_v2.0_WordClock_v2, 0595_LoRaPP_loramod).
 
 #### Parity with PCBWorld's published Freerouting run (D3-A)
 
@@ -78,8 +78,8 @@ The frozen run above is the held-out result. The post-freeze fixes (PTH pads on 
 
 | tier | boards | clean | median / p90 s | build |
 |---|---:|---:|---:|---|
-| medium, held out | 40 | 38/40 = 0.95 [0.83, 0.99] | 0.8 / 3.2 | bench-freeze-30-g43cf691 |
-| hard, held out | 14 | 13/14 = 0.93 [0.69, 0.99] | 3.1 / 16.6 | bench-freeze-31-g7c445d4, bench-freeze-31-g7c445d4-dirty |
+| medium, held out | 86 | 81/86 = 0.94 [0.87, 0.97] | 1.2 / 9.4 | bench-freeze-30-g43cf691 |
+| hard, held out | 90 | 71/90 = 0.79 [0.69, 0.86] | 10.2 / 93.4 | bench-freeze-31-g7c445d4, bench-freeze-31-g7c445d4-dirty |
 
 The slowest completed held-out copperline run took 1774 s; the frozen build ran into the bench's 1800 s cap on 0672_DAC-ADAU1966_DAC-ADAU1966, because its time budget was only checked between negotiation passes (it is a deadline since; see Limitations).
 <!-- results:end -->
@@ -125,7 +125,9 @@ frozen version produced them.
 (`git diff bench-freeze 1de4fa8 -- src` is empty) until the last frozen board was routed,
 and the post-freeze fixes were compiled in a separate target directory until then. The
 "current build" table reruns today's code (with the fixes and the hard deadline) on the
-same sealed boards, and every row it writes names its commit.
+same sealed boards, on a quiet machine, and every row it writes names its commit. Some of
+its rows say `-dirty`: a documentation edit was uncommitted when that shard started. The
+binary was built at g43cf691, and `src/` is identical in g43cf691 and g7c445d4.
 
 Board 0498 (Spikeling) is dropped for both routers: KiCad 9's `ImportSpecctraSES` rejects
 Freerouting's session file for it, so it cannot be scored for Freerouting through no fault
