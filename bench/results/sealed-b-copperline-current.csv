@@ -16,3 +16,8 @@ board,router,commit,seed,status,clean,unconnected,violations,baseline_violations
 0151_BB-PWR-8113_BB-PWR-8113_revA,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,0.277,0.0,75,2,77.302
 0156_esp12-breakout_ESP12Breakout,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,0.13,0.0,82,2,149.118
 0162_AS5043-Encoder_sensor-board,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,0.882,0.0,114,6,202.645
+0164_yamsek.kicad_i2c_bridge_primary,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,0.859,0.0,109,15,165.962
+0171_esp8266-external-temp-sensor_external-temp-sensor,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,0.41,0.0,107,3,207.654
+0173_sensorboard_DiffIR.kicad_pcb_narrow,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,0.427,0.0,117,5,209.872
+0175_Youyue-858D-plus-FAN-speed-mod_youyue-858d-plus-fan-speed-mod,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,0.484,0.0,108,10,157.087
+0179_silverduino-board_kicad,copperline,bench-freeze-30-g43cf691,,ok,1,0,0,0,,1.514,0.0,170,4,660.426
