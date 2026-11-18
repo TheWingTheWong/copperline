@@ -57,8 +57,9 @@ How to read this. Clean-pass comes with a Wilson 95% interval, then the median a
 90th-percentile route time per board. "Both / only" count the boards each router got clean.
 The main table pairs boards: a board counts only once both routers have a result for it.
 
-**Why Freerouting loses boards.** Mostly it runs out of passes: at PCBWorld's setting of
-`-mp 10` it often stops with a connection or two unrouted. Its DRC errors, though, are
+**Why Freerouting loses boards.** On medium boards it mostly runs out of passes: at
+PCBWorld's setting of `-mp 10` it often stops with a connection or two unrouted. On hard
+boards it mostly runs out of time (the cap, below). Its DRC errors, though, are
 mostly not routing mistakes. Freerouting receives the board through KiCad's Specctra DSN
 export, which carries no copper text and no footprint-level clearance overrides, and
 the SES that comes back has widths rounded to the DSN resolution. `bench/classify.py`
