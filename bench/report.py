@@ -36,6 +36,11 @@ def load(split, router):
     return out
 
 
+def capfmt(t):
+    """Freerouting times at its time cap are the cap, not a measurement."""
+    return f"{t:.0f} (cap)" if t >= 599 else f"{t:.1f}"
+
+
 def wilson(k, n, z=1.96):
     if n == 0:
         return (0.0, 0.0)
@@ -129,7 +134,7 @@ def main():
             per_board.append(f"| {name} | {x} | {verdict(a[x])} | {verdict(b[x])} | {a[x]['route_s']} | {b[x]['route_s']} |")
         lines.append(
             f"| {name} | {n} | {ka}/{n} = {ka / n:.2f} [{wa[0]:.2f}, {wa[1]:.2f}] | {kb}/{n} = {kb / n:.2f} [{wb[0]:.2f}, {wb[1]:.2f}] | {kf}/{n} = {kf / n:.2f} [{wf[0]:.2f}, {wf[1]:.2f}] | "
-            f"{statistics.median(ta):.1f} / {q(ta, 0.9):.1f} | {statistics.median(tb):.1f} / {q(tb, 0.9):.1f} | {both} | {ka - both} | {kb - both} |")
+            f"{statistics.median(ta):.1f} / {q(ta, 0.9):.1f} | {capfmt(statistics.median(tb))} / {capfmt(q(tb, 0.9))} | {both} | {ka - both} | {kb - both} |")
         chart.append((name, n, ka / n, wa, kb / n, wb, statistics.median(ta), statistics.median(tb)))
         tier_stats[name] = dict(n=n, ka=ka, kb=kb, kf=kf, ma=statistics.median(ta), mb=statistics.median(tb))
     lines += ["", "## copperline on every board of each tier (not only those Freerouting finished)", "",
@@ -157,9 +162,25 @@ def main():
     fr = load("test-a", "freerouting")
     full = [r for r in fr.values() if r["status"] == "ok" and r["unconnected"] == "0"]
     drv = statistics.mean(int(r["violations"] or 0) for r in full) if full else float("nan")
+    # Routability as PCBWorld defines it: per board, the fraction of connections routed,
+    # averaged over all boards. Connection counts come from copperline's stats for the same
+    # input; KiCad's unconnected items count the missing ones; timeouts and errors count 0.
+    fracs = []
+    for name, r in fr.items():
+        sj = HERE / "work" / "copperline" / name / "routed.stats.json"
+        if not sj.exists():
+            continue
+        conns = json.loads(sj.read_text()).get("connections", 0)
+        if conns == 0:
+            continue
+        if r["status"] != "ok":
+            fracs.append(0.0)
+        else:
+            fracs.append(max(0.0, 1 - int(r["unconnected"] or 0) / conns))
+    rout = statistics.mean(fracs) if fracs else float("nan")
     lines += ["## Parity with PCBWorld's published Freerouting run (D3-A)", "",
               "PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) reports mean DRC violations 0.09 on fully routed boards and routability 0.98 (mean fraction of nets routed). Clean-pass is not published, so this compares what can be compared:", "",
-              f"- our single-seed run on test-a: {len(full)}/{len(fr)} boards fully routed, mean DRC violations on those {drv:.2f}",
+              f"- our single-seed run on test-a: routability {rout:.2f} (PCBWorld: 0.98), mean DRC violations on fully routed boards {drv:.2f} (PCBWorld: 0.09; ours includes the DSN-conversion artifacts above), {len(full)}/{len(fr)} boards fully routed",
               f"- clean-pass of our run: {sum(int(r['clean']) for r in fr.values())}/{len(fr)}", ""]
     # The current build (post-freeze fixes, hard time deadline at the default 90 s), rerun on
     # the sealed sets: what a user of today's code gets. Not held out any more: the fixes

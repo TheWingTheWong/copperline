@@ -10,7 +10,7 @@ use copperline::write;
 const USAGE: &str = "copperline: PCB autorouter for KiCad 9 boards
 
 usage:
-  copperline route <in.kicad_pcb> -o <out.kicad_pcb> [--stats stats.json] [--pitch mm] [--iters N] [--budget s] [--hweight w]
+  copperline route <in.kicad_pcb> -o <out.kicad_pcb> [--stats stats.json] [--pitch mm] [--iters N] [--budget s (default 90)] [--hweight w]
                    [--frames DIR [--frame-width PX]]   write one PPM per routing step
   copperline info <board.kicad_pcb>
   copperline svg <board.kicad_pcb> -o <out.svg> [--width px]
@@ -85,6 +85,13 @@ fn run(args: &[String]) -> Result<(), String> {
                 "pitch {:.3} mm, {} nets, {}/{} connections, {} iterations, {} tracks, {} vias, {:.1} mm, {} ms",
                 s.pitch, s.nets, s.connections_routed, s.connections, s.iterations, s.tracks, s.vias, s.length_mm, s.ms
             );
+            if s.connections_routed < s.connections {
+                eprintln!(
+                    "incomplete: {} of {} connections left unrouted (the output is legal); a larger --budget may help on big boards",
+                    s.connections - s.connections_routed,
+                    s.connections
+                );
+            }
             let text = write::append(&src, &write::block(&b, &res.tracks, &res.vias, 0x5eed))?;
             std::fs::write(&out_path, text).map_err(|e| format!("{}: {e}", out_path.display()))?;
             if let Some(sp) = stats_path {
