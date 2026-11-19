@@ -100,7 +100,7 @@ def route_copperline(src, dst, seed):
     with open(dst.with_suffix(".log"), "w") as log:
         r = subprocess.run([COPPERLINE, "route", str(src), "-o", str(dst), "--stats", str(dst.with_suffix(".stats.json"))],
                            stdout=log, stderr=subprocess.STDOUT, timeout=CAP_S)
-    if r.returncode != 0 or not dst.exists():
+    if r.returncode not in (0, 2) or not dst.exists():  # 2 = legal but incomplete
         raise RuntimeError(f"copperline exited {r.returncode}")
     return time.monotonic() - t0, 0.0
 

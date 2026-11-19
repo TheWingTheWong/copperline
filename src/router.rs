@@ -52,6 +52,10 @@ pub struct Params {
     pub snapshots: bool,
     /// Wall-clock budget for negotiation, in seconds; the router then legalises what it has.
     pub time_budget_s: f64,
+    /// Deterministic effort budget: total A* node expansions for the whole board, across
+    /// the finer-grid retries. This, not the clock, decides where routing stops, so a
+    /// result does not depend on how busy the machine is (`time_budget_s` is a safety net).
+    pub effort: u64,
     /// Stop negotiating after this many passes without a new best conflict count.
     pub stall_iters: usize,
 }
@@ -71,7 +75,8 @@ impl Default for Params {
             h_weight: 1.25,
             max_cells: 3_000_000,
             snapshots: false,
-            time_budget_s: 90.0,
+            time_budget_s: 600.0,
+            effort: 150_000_000,
             stall_iters: 15,
         }
     }
@@ -305,6 +310,8 @@ pub struct Stats {
     pub vias: usize,
     pub length_mm: f64,
     pub ms: u128,
+    /// A* expansions spent (the effort counter).
+    pub work: u64,
 }
 
 /// One frame of routing progress: every net's current tracks and vias.
@@ -357,8 +364,10 @@ pub struct Router<'a> {
     routes: Vec<Route>,
     /// Pads found unreachable on the static masks (per net); never searched again.
     dead: Vec<Vec<bool>>,
-    /// Start of `run`, for the hard deadline.
+    /// Start of `run`, for the wall-clock safety net.
     start: Clock,
+    /// A* expansions so far (the deterministic effort counter).
+    work: u64,
     // search scratch
     dist: Vec<f32>,
     parent: Vec<u32>,
@@ -428,6 +437,7 @@ impl<'a> Router<'a> {
             routes: Vec::new(),
             dead: Vec::new(),
             start: Clock::now(),
+            work: 0,
             dist: vec![f32::INFINITY; nl * n],
             parent: vec![u32::MAX; nl * n],
             target: vec![0; nl * n],
@@ -470,6 +480,11 @@ impl<'a> Router<'a> {
         r.dead = r.nets.iter().map(|n| vec![false; n.pads.len()]).collect();
         dbg_time("accesses", t0);
         r
+    }
+
+    /// True once the effort budget (times `factor`) or the wall-clock safety net is spent.
+    fn exhausted(&self, factor: f64) -> bool {
+        self.work as f64 > self.prm.effort as f64 * factor || self.start.ms() / 1000.0 > self.prm.time_budget_s * factor
     }
 
     pub fn grid(&self) -> Grid {
@@ -857,7 +872,7 @@ impl<'a> Router<'a> {
         route.connected = 1;
         let mut tree: Vec<usize> = Vec::new();
         loop {
-            if self.start.ms() / 1000.0 > self.prm.time_budget_s * 1.25 {
+            if self.exhausted(1.25) {
                 break; // deadline: leave the rest of this net unconnected
             }
             let remaining: Vec<usize> = (0..npads).filter(|&k| !in_tree[k] && !access[k].is_empty() && !self.dead[ni][k]).collect();
@@ -1092,6 +1107,7 @@ impl<'a> Router<'a> {
                 }
             }
         }
+        self.work += pops as u64;
         if pops > 200_000 && std::env::var_os("COPPERLINE_DEBUG").is_some() {
             eprintln!("debug:   astar net {} pops {} found {} strict {} pres {:.1} window {:?}", self.board.net_name(net), pops, goal.is_some(), strict, pres, win);
         }
@@ -1182,7 +1198,7 @@ impl<'a> Router<'a> {
                 }
                 // Hard deadline even inside a pass: big boards can spend the whole budget
                 // in the first one. Nets not reached keep their previous route (or none).
-                if t0.ms() / 1000.0 > self.prm.time_budget_s {
+                if self.exhausted(1.0) {
                     break;
                 }
                 self.rip_up(ni);
@@ -1215,7 +1231,7 @@ impl<'a> Router<'a> {
                 let hot = (0..self.nets.len()).filter(|&i| dirty[i]).map(|i| self.nets[i].id).collect();
                 snapshots.push(Snapshot { iteration: it, conflicts: total, tracks, vias, hot });
             }
-            if total == 0 || t0.ms() / 1000.0 > self.prm.time_budget_s {
+            if total == 0 || self.exhausted(1.0) {
                 break;
             }
             // Stagnation: the remaining conflicts are usually a few nets that must swap
@@ -1251,11 +1267,10 @@ impl<'a> Router<'a> {
         // DRC has the last word.
         // The budget is a deadline: past 1.25x of it, nets in conflict are dropped instead of
         // rerouted, so a board never runs far over (the output stays legal either way).
-        let over = |t0: &Clock, prm: &Params| t0.ms() / 1000.0 > prm.time_budget_s * 1.25;
         for ni in self.net_order() {
             if !self.conflicts(ni).is_empty() {
                 self.rip_up(ni);
-                if !over(&t0, &self.prm) {
+                if !self.exhausted(1.25) {
                     self.route_net(ni, pres, true);
                     self.stamp_route(ni);
                 }
@@ -1271,7 +1286,7 @@ impl<'a> Router<'a> {
             for ni in self.net_order() {
                 if bad.contains(&self.nets[ni].id) {
                     self.rip_up(ni);
-                    if round < 2 && !over(&t0, &self.prm) {
+                    if round < 2 && !self.exhausted(1.25) {
                         self.route_net(ni, pres, true);
                         self.stamp_route(ni);
                     } else {
@@ -1294,6 +1309,7 @@ impl<'a> Router<'a> {
         stats.vias = vias.len();
         stats.length_mm = tracks.iter().map(|t| t.a.dist(t.b)).sum();
         stats.ms = t0.ms() as u128;
+        stats.work = self.work;
         if self.prm.snapshots {
             snapshots.push(Snapshot { iteration: stats.iterations, conflicts: 0, tracks: tracks.clone(), vias: vias.clone(), hot: Vec::new() });
         }
@@ -1310,15 +1326,22 @@ fn net_class_dbg(r: &Router, net: u32) -> usize {
 /// corridors (between 2.54 mm header pads, say) only exist on a fine enough grid.
 pub fn route_board(board: &Board, rules: &Rules, prm: &Params) -> Output {
     let clock = Clock::now();
-    let total = prm.time_budget_s;
+    let retries = prm.pitch.is_none();
+    // The first (coarse) attempt gets 60% of the effort when finer retries may follow; the
+    // retries share what is left. Both budgets are deterministic expansion counts.
     let mut p1 = prm.clone();
-    p1.time_budget_s = if prm.pitch.is_some() { total } else { total * 0.6 };
+    if retries {
+        p1.effort = prm.effort / 10 * 6;
+        p1.time_budget_s = prm.time_budget_s * 0.6;
+    }
     let first = Router::new(board, rules, p1);
     let g0 = first.grid().g;
     let mut best = first.run();
+    let mut spent = best.stats.work;
     for (i, f) in [0.6, 0.4].into_iter().enumerate() {
-        let left = total - clock.ms() / 1000.0;
-        if best.stats.connections_routed == best.stats.connections || prm.pitch.is_some() || left < 2.0 {
+        let left = prm.effort.saturating_sub(spent);
+        let left_s = prm.time_budget_s - clock.ms() / 1000.0;
+        if best.stats.connections_routed == best.stats.connections || !retries || left < prm.effort / 50 || left_s < 2.0 {
             break;
         }
         let g = (g0 * f).max(0.03);
@@ -1327,15 +1350,16 @@ pub fn route_board(board: &Board, rules: &Rules, prm: &Params) -> Output {
         }
         let mut p2 = prm.clone();
         p2.pitch = Some(g);
-        p2.time_budget_s = if i == 0 { left * 0.6 } else { left };
-        let mut out = Router::new(board, rules, p2).run();
+        p2.effort = if i == 0 { left / 10 * 6 } else { left };
+        p2.time_budget_s = if i == 0 { left_s * 0.6 } else { left_s };
+        let out = Router::new(board, rules, p2).run();
+        spent += out.stats.work;
         if out.stats.connections_routed > best.stats.connections_routed {
             best = out;
-        } else {
-            out.stats = Stats::default();
         }
     }
     best.stats.ms = clock.ms() as u128;
+    best.stats.work = spent;
     best
 }
 

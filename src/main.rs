@@ -10,7 +10,7 @@ use copperline::write;
 const USAGE: &str = "copperline: PCB autorouter for KiCad 9 boards
 
 usage:
-  copperline route <in.kicad_pcb> -o <out.kicad_pcb> [--stats stats.json] [--pitch mm] [--iters N] [--budget s (default 90)] [--hweight w]
+  copperline route <in.kicad_pcb> -o <out.kicad_pcb> [--stats stats.json] [--pitch mm] [--iters N] [--effort M (default 150)] [--budget s (default 600)] [--hweight w]
                    [--frames DIR [--frame-width PX]]   write one PPM per routing step
   copperline info <board.kicad_pcb>
   copperline svg <board.kicad_pcb> -o <out.svg> [--width px]
@@ -63,6 +63,7 @@ fn run(args: &[String]) -> Result<(), String> {
                     "--iters" => prm.max_iters = val.parse().map_err(|_| "bad --iters")?,
                     "--hweight" => prm.h_weight = val.parse().map_err(|_| "bad --hweight")?,
                     "--budget" => prm.time_budget_s = val.parse().map_err(|_| "bad --budget")?,
+                    "--effort" => prm.effort = (val.parse::<f64>().map_err(|_| "bad --effort")? * 1e6) as u64,
                     "--frames" => frames = Some(PathBuf::from(val)),
                     "--frame-width" => frame_w = val.parse().map_err(|_| "bad --frame-width")?,
                     other => return Err(format!("unknown option {other}\n{USAGE}")),
@@ -82,15 +83,16 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             let s = &res.stats;
             eprintln!(
-                "pitch {:.3} mm, {} nets, {}/{} connections, {} iterations, {} tracks, {} vias, {:.1} mm, {} ms",
-                s.pitch, s.nets, s.connections_routed, s.connections, s.iterations, s.tracks, s.vias, s.length_mm, s.ms
+                "pitch {:.3} mm, {} nets, {}/{} connections, {} iterations, {} tracks, {} vias, {:.1} mm, {} ms, effort {:.0}M",
+                s.pitch, s.nets, s.connections_routed, s.connections, s.iterations, s.tracks, s.vias, s.length_mm, s.ms, s.work as f64 / 1e6
             );
             if s.connections_routed < s.connections {
                 eprintln!(
-                    "incomplete: {} of {} connections left unrouted (the output is legal); a larger --budget may help on big boards",
+                    "incomplete: {} of {} connections left unrouted (the output is legal; exit code 2); a larger --effort may help on big boards",
                     s.connections - s.connections_routed,
                     s.connections
                 );
+                INCOMPLETE.store(true, std::sync::atomic::Ordering::Relaxed);
             }
             let text = write::append(&src, &write::block(&b, &res.tracks, &res.vias, 0x5eed))?;
             std::fs::write(&out_path, text).map_err(|e| format!("{}: {e}", out_path.display()))?;
@@ -100,7 +102,7 @@ fn run(args: &[String]) -> Result<(), String> {
                     "connections": s.connections, "connections_routed": s.connections_routed,
                     "iterations": s.iterations, "conflicts_per_iter": s.conflicts_per_iter,
                     "drc_dropped": s.drc_dropped, "tracks": s.tracks, "vias": s.vias,
-                    "length_mm": s.length_mm, "ms": s.ms,
+                    "length_mm": s.length_mm, "ms": s.ms, "effort": s.work,
                 });
                 std::fs::write(&sp, j.to_string()).map_err(|e| e.to_string())?;
             }
@@ -148,9 +150,13 @@ fn run(args: &[String]) -> Result<(), String> {
     }
 }
 
+/// Set when a route leaves connections out: the process then exits with code 2.
+static INCOMPLETE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match run(&args) {
+        Ok(()) if INCOMPLETE.load(std::sync::atomic::Ordering::Relaxed) => ExitCode::from(2),
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             eprintln!("{e}");
