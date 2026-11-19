@@ -11,7 +11,7 @@ routes boards on your machine with no server.
 ![copperline routing a two-layer QFP-48 breakout: first pass with nets overlapping, then negotiation until no two nets share copper](assets/routing.gif)
 
 <!-- headline:start -->
-On 86 real open-hardware boards of medium size that it never saw during development, routed one at a time with the same input files and scored by KiCad 9's own DRC, copperline produces **94% clean boards against Freerouting's 66%** (71% if Freerouting is forgiven the errors KiCad's DSN export causes), with a median of 2.2 s per board against 20 s. On 90 hard boards it routes 80% clean (median 11 s) with a deterministic effort budget.
+On 86 real open-hardware boards of medium size, set aside before development began and routed one at a time with the same input files and scored by KiCad 9's own DRC, copperline produces **94% clean boards against Freerouting's 66%** (71% if Freerouting is forgiven the errors KiCad's DSN export causes), with a median of 2.2 s per board against 20 s. On 90 hard boards it routes 80% clean (median 11 s) with a deterministic effort budget.
 <!-- headline:end -->
 
 ![Clean-pass rate per tier, copperline vs Freerouting](assets/headline.svg)
@@ -35,7 +35,7 @@ cargo run --release -- route examples/mcu48.kicad_pcb -o /tmp/mcu48-routed.kicad
 ```
 
 ```
-pitch 0.087 mm, 42 nets, 62/62 connections, 18 iterations, 544 tracks, 54 vias, 1267.9 mm, 5440 ms
+pitch 0.087 mm, 42 nets, 62/62 connections, 18 iterations, 544 tracks, 54 vias, 1267.9 mm, 7985 ms, effort 8M
 ```
 
 `scripts/check_examples.sh` routes both bundled boards and scores them with `kicad-cli`
@@ -139,13 +139,26 @@ commits whose `src/` matches `bench-freeze` until that run ended (`git diff benc
 `ImportSpecctraSES` rejects Freerouting's session file for it. Per-board results are in
 [`bench/results/per-board.md`](bench/results/per-board.md).
 
-Three held-out boards side by side (left copperline, right Freerouting, same input file;
-solid blocks are copper text, drawn as the boxes copperline keeps clear of). On the second
-and third, Freerouting's errors are its tracks crossing copper text it was never shown.
+Three held-out boards from the head-to-head run, side by side (left copperline, right
+Freerouting, same input file; solid blocks are copper text, drawn as the boxes copperline
+keeps clear of).
 
 ![Eggbot controller, both clean](assets/compare-0348.png)
-![rotorcontrol nanomount: Freerouting's tracks cross copper text missing from its DSN input](assets/compare-0119.png)
-![type5: copperline leaves 4 connections; Freerouting connects everything but crosses copper text](assets/compare-0300.png)
+![rotorcontrol nanomount: copperline clean, Freerouting leaves one connection](assets/compare-0119.png)
+![type5: copperline clean; Freerouting connects everything but its tracks cross copper text it was never shown](assets/compare-0300.png)
+
+**Freerouting is not deterministic.** Between its two runs on the same 86 medium boards,
+19 boards flipped between clean and not clean (10 one way, 9 the other), while the total
+moved by one (56 and 57). The totals are stable; the per-board "only" counts are one sample.
+
+**How held out is "held out".** The sealed boards were set aside before any router code
+existed and the frozen run routed them once. Two of copperline's later fixes came from
+KiCad findings on sealed boards (the PTH pad on 0282, the DRC bucket on 0595), and the
+default effort budget was set after the hard-tier runs, so the head-to-head numbers are on
+boards the current build has been exposed to; the frozen run is the strictly held-out one.
+The reproducibility check compares the deterministic hard-tier run with an earlier one whose
+rows name a `-dirty` checkout; the routing code is identical in both (only `--version` and
+`render`'s file-name check differ).
 
 Every number in this section is written by `python3 bench/report.py` from the per-board
 CSVs in `bench/results/` (and into `bench/results/summary.md`). Times are each router's
@@ -267,8 +280,11 @@ splits are in `bench/splits.json`.
 - Hard boards can take minutes, because A* floods behind large blocked areas. `--effort`
   (in millions of A* expansions, 150 by default, about two minutes on this laptop for the
   hardest boards) decides where routing stops, so the same input always gives the same
-  output. `--budget` (600 s) is only a wall-clock safety net. A board that runs out of
-  effort is written legal but incomplete, and `copperline` exits with code 2.
+  output. `--budget` (600 s) is only a wall-clock safety net (the first, coarse attempt gets
+  60% of it); the slowest hard board here needed 280 s, so on a machine more than about
+  1.3x slower, or in the browser (which uses a 60 s budget), that net can cut a route short
+  and results can again depend on time. A board that runs out of effort is written legal but
+  incomplete, and `copperline` exits with code 2.
 - The browser demo runs the same code in WebAssembly, somewhat slower than native; dense
   boards take a while there.
 

@@ -180,7 +180,14 @@ def main():
             fracs.append(0.0)
         else:
             fracs.append(max(0.0, 1 - int(r["unconnected"] or 0) / conns))
-    rout = statistics.mean(fracs) if fracs else float("nan")
+    # The connection counts live in the (uncommitted) work dirs; keep the result in a
+    # committed file so a clean clone regenerates the same text.
+    pj = RES / "parity.json"
+    if fracs:
+        rout = statistics.mean(fracs)
+        pj.write_text(json.dumps({"routability_test_a_freerouting": round(rout, 4), "boards": len(fracs)}) + "\n")
+    else:
+        rout = json.loads(pj.read_text())["routability_test_a_freerouting"] if pj.exists() else float("nan")
     lines += ["## Parity with PCBWorld's published Freerouting run (D3-A)", "",
               "PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) reports mean DRC violations 0.09 on fully routed boards and routability 0.98 (mean fraction of nets routed). Clean-pass is not published, so this compares what can be compared:", "",
               f"- our single-seed run on test-a: routability {rout:.2f} (PCBWorld: 0.98), mean DRC violations on fully routed boards {drv:.2f} (PCBWorld: 0.09; ours includes the DSN-conversion artifacts above), {len(full)}/{len(fr)} boards fully routed",
@@ -296,7 +303,7 @@ def readme_blocks(lines, ts, missed, routed, cur=None):
     timeouts = sum(1 for r in fr_hard.values() if r["status"] == "timeout")
     md, hd = (cur or {}).get("medium"), (cur or {}).get("hard")
     if md and hd:
-        headline = (f"On {md['n']} real open-hardware boards of medium size that it never saw during development, routed one at a time "
+        headline = (f"On {md['n']} real open-hardware boards of medium size, set aside before development began and routed one at a time "
                     f"with the same input files and scored by KiCad 9's own DRC, copperline produces **{md['ka'] / md['n']:.0%} clean boards against "
                     f"Freerouting's {md['kb'] / md['n']:.0%}** ({md['kf'] / md['n']:.0%} if Freerouting is forgiven the errors KiCad's DSN export "
                     f"causes), with a median of {md['ma']:.1f} s per board against {md['mb']:.0f} s. On {hd['n']} hard boards it routes "
