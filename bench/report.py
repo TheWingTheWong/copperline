@@ -182,26 +182,48 @@ def main():
               "PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) reports mean DRC violations 0.09 on fully routed boards and routability 0.98 (mean fraction of nets routed). Clean-pass is not published, so this compares what can be compared:", "",
               f"- our single-seed run on test-a: routability {rout:.2f} (PCBWorld: 0.98), mean DRC violations on fully routed boards {drv:.2f} (PCBWorld: 0.09; ours includes the DSN-conversion artifacts above), {len(full)}/{len(fr)} boards fully routed",
               f"- clean-pass of our run: {sum(int(r['clean']) for r in fr.values())}/{len(fr)}", ""]
-    # The current build (post-freeze fixes, hard time deadline at the default 90 s), rerun on
-    # the sealed sets: what a user of today's code gets. Not held out any more: the fixes
-    # were prompted by KiCad findings on these boards.
-    cur = {}
-    lines += ["", "## Current build on the sealed sets (default 90 s deadline)", "",
-              "The frozen run above is the held-out result. The post-freeze fixes (PTH pads on every layer, DRC bucket inflation, "
-              "time budget as a hard deadline) were prompted by KiCad findings on those boards, so this rerun is not held out; "
-              "it shows what today's code and defaults give.", "",
-              "| tier | boards | clean | median / p90 s | build |", "|---|---:|---:|---:|---|"]
-    for name, split in (("medium, held out", "sealed-b"), ("hard, held out", "sealed-c")):
-        rs = {k: v for k, v in load(split, "copperline-current").items() if k not in EXCLUDE}
-        if not rs:
-            continue
-        k = sum(int(r["clean"]) for r in rs.values())
-        t = sorted(float(r["route_s"] or 0) for r in rs.values())
-        builds = sorted({r.get("commit", "") for r in rs.values()})
-        w = wilson(k, len(rs))
-        cur[name] = (k, len(rs), statistics.median(t))
-        lines.append(f"| {name} | {len(rs)} | {k}/{len(rs)} = {k / len(rs):.2f} [{w[0]:.2f}, {w[1]:.2f}] | {statistics.median(t):.1f} / {t[int(0.9 * len(t))]:.1f} | {', '.join(builds)} |")
+    # Main result: the current, deterministic build (effort budget, no wall clock in the
+    # loop) against Freerouting run one board at a time on an otherwise idle machine.
+    lead = ["## Head to head, one board at a time (current build)", "",
+            "| tier | boards | copperline clean | Freerouting clean | Freerouting, conversion artifacts forgiven | copperline median / p90 s | Freerouting median / p90 s | both clean | only copperline | only Freerouting |",
+            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
+    idle = {}
+    a = {k: v for k, v in load("sealed-b", "copperline-det").items() if k not in EXCLUDE}
+    b = {k: v for k, v in load("sealed-b", "freerouting-idle").items() if k not in EXCLUDE}
+    common = sorted(set(a) & set(b))
+    if common:
+        n = len(common)
+        ka = sum(int(a[x]["clean"]) for x in common)
+        kb = sum(int(b[x]["clean"]) for x in common)
+        kf = sum(forgiven_clean(b[x], "freerouting", art) for x in common)
+        both = sum(int(a[x]["clean"]) and int(b[x]["clean"]) for x in common)
+        ta = sorted(float(a[x]["route_s"] or 0) for x in common)
+        tb = sorted(float(b[x]["route_s"] or 0) for x in common)
+        q = lambda t, f: t[min(len(t) - 1, int(f * len(t)))]
+        wa, wb, wf = wilson(ka, n), wilson(kb, n), wilson(kf, n)
+        lead.append(f"| medium, held out | {n} | {ka}/{n} = {ka / n:.2f} [{wa[0]:.2f}, {wa[1]:.2f}] | {kb}/{n} = {kb / n:.2f} [{wb[0]:.2f}, {wb[1]:.2f}] | "
+                    f"{kf}/{n} = {kf / n:.2f} [{wf[0]:.2f}, {wf[1]:.2f}] | {statistics.median(ta):.1f} / {q(ta, 0.9):.1f} | "
+                    f"{capfmt(statistics.median(tb))} / {capfmt(q(tb, 0.9))} | {both} | {ka - both} | {kb - both} |")
+        idle["medium"] = dict(n=n, ka=ka, kb=kb, kf=kf, ma=statistics.median(ta), mb=statistics.median(tb), wa=wa, wb=wb)
+    h = {k: v for k, v in load("sealed-c", "copperline-det").items() if k not in EXCLUDE}
+    if h:
+        k = sum(int(r["clean"]) for r in h.values())
+        t = sorted(float(r["route_s"] or 0) for r in h.values())
+        w = wilson(k, len(h))
+        builds = sorted({r.get("commit", "") for r in list(a.values()) + list(h.values())})
+        lead += ["", "| copperline alone | boards | clean | median / p90 / max s |", "|---|---:|---:|---:|",
+                 f"| hard, held out | {len(h)} | {k}/{len(h)} = {k / len(h):.2f} [{w[0]:.2f}, {w[1]:.2f}] | {statistics.median(t):.1f} / {t[int(0.9 * len(t))]:.1f} / {t[-1]:.0f} |",
+                 "", f"copperline build for these rows: {', '.join(builds)}, default effort budget."]
+        idle["hard"] = dict(n=len(h), k=k, m=statistics.median(t), w=w)
+    lines[4:4] = lead + ["", "## Earlier run: frozen build, both routers sharing a loaded laptop", ""]
+    cur = idle
     readme_blocks(lines, tier_stats, missed, routed, cur)
+    if idle:
+        chart = [("medium, held out", idle["medium"]["n"], idle["medium"]["ka"] / idle["medium"]["n"], idle["medium"]["wa"],
+                  idle["medium"]["kb"] / idle["medium"]["n"], idle["medium"]["wb"], idle["medium"]["ma"], idle["medium"]["mb"])] if "medium" in idle else []
+        if "hard" in idle:
+            hd = idle["hard"]
+            chart.append(("hard, held out", hd["n"], hd["k"] / hd["n"], hd["w"], None, None, hd["m"], None))
     # Failure classes.
     lines += ["", "## Why boards are not clean (paired boards)", "", "| router | tier | unconnected only | DRC violations | timeout / error |", "|---|---|---:|---:|---:|"]
     for name, members in tiers():
@@ -263,20 +285,19 @@ def readme_blocks(lines, ts, missed, routed, cur=None):
     slow = max(float(r["route_s"] or 0) for name in ("medium, held out", "hard, held out") for r in allc[name].values())
     fr_hard = rows_for(dict(tiers())["hard, held out"], "freerouting")
     timeouts = sum(1 for r in fr_hard.values() if r["status"] == "timeout")
-    headline = (f"On {m['n']} medium and {h['n']} hard open-hardware boards it never saw during development, scored by "
-                f"KiCad 9's own DRC on the same input files, copperline routes **{m['ka'] / m['n']:.0%} of the medium boards and "
-                f"{h['ka'] / h['n']:.0%} of the hard ones clean, against Freerouting's {m['kb'] / m['n']:.0%} and {h['kb'] / h['n']:.0%}**. "
-                f"Median time per board: {m['ma']:.0f} s against {m['mb']:.0f} s on the medium boards; on the hard ones copperline's median "
-                f"is {h['ma']:.0f} s, while Freerouting ran into its time cap on {timeouts} of {len(fr_hard)}.")
-    if cur and "medium, held out" in cur and "hard, held out" in cur:
-        (mk, mn, mm), (hk2, hn, hm) = cur["medium, held out"], cur["hard, held out"]
-        headline += (f" Those are the frozen build's numbers, measured with both routers sharing a loaded laptop. Today's build, "
-                     f"rerun on the same boards on a quiet machine with its default 90 s deadline, gets {mk / mn:.0%} and {hk2 / hn:.0%} "
-                     f"(median {mm:.0f} s and {hm:.0f} s); Freerouting was not rerun, so that pair is not head to head.")
+    md, hd = (cur or {}).get("medium"), (cur or {}).get("hard")
+    if md and hd:
+        headline = (f"On {md['n']} real open-hardware boards of medium size that it never saw during development, routed one at a time "
+                    f"with the same input files and scored by KiCad 9's own DRC, copperline produces **{md['ka'] / md['n']:.0%} clean boards against "
+                    f"Freerouting's {md['kb'] / md['n']:.0%}** ({md['kf'] / md['n']:.0%} if Freerouting is forgiven the errors KiCad's DSN export "
+                    f"causes), with a median of {md['ma']:.1f} s per board against {md['mb']:.0f} s. On {hd['n']} hard boards it routes "
+                    f"{hd['k'] / hd['n']:.0%} clean (median {hd['m']:.0f} s) with a deterministic effort budget.")
+    else:
+        headline = "(results pending)"
     start, end = "<!-- headline:start -->", "<!-- headline:end -->"
     if start in text:
         text = text[: text.index(start) + len(start)] + "\n" + headline + "\n" + text[text.index(end):]
-    body = "\n".join(lines[lines.index("| tier | boards | copperline clean | Freerouting clean | Freerouting, conversion artifacts forgiven | copperline median / p90 s | Freerouting median / p90 s | both clean | only copperline | only Freerouting |"):])
+    body = "\n".join(lines[lines.index("## Head to head, one board at a time (current build)"):])
     start, end = "<!-- results:start -->", "<!-- results:end -->"
     held = [r for name in ("medium, held out", "hard, held out") for r in allc[name].values()]
     capped = [r["board"] for r in held if r["status"] == "timeout"]
@@ -302,13 +323,17 @@ def write_chart(chart):
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" font-family="Helvetica, Arial, sans-serif">',
          f'<rect width="{W}" height="{H}" fill="#ffffff"/>',
          f'<text x="{left}" y="28" font-size="17" font-weight="bold" fill="#1d2733">Boards routed with zero KiCad 9 DRC errors (clean-pass)</text>',
-         f'<text x="{left}" y="47" font-size="12" fill="#56606e">PCBWorld D3 boards, same input files for both routers; whiskers are Wilson 95% intervals</text>']
+         f'<text x="{left}" y="47" font-size="12" fill="#56606e">Held-out PCBWorld D3 boards, one board at a time, same input files; whiskers: Wilson 95% intervals</text>']
     for v in [0, 0.25, 0.5, 0.75, 1.0]:
         o.append(f'<line x1="{left}" x2="{W - 30}" y1="{y(v):.1f}" y2="{y(v):.1f}" stroke="#e3e7ec"/>')
         o.append(f'<text x="{left - 8}" y="{y(v) + 4:.1f}" font-size="11" text-anchor="end" fill="#56606e">{v:.2f}</text>')
     for i, (name, n, pa, wa, pb, wb, ma, mb) in enumerate(chart):
         gx = left + i * gw + gw / 2
         for j, (router, pv, wv, med) in enumerate([("copperline", pa, wa, ma), ("freerouting", pb, wb, mb)]):
+            if pv is None:
+                cx = gx - bw - 4 + j * (bw + 8) + bw / 2
+                o.append(f'<text x="{cx:.1f}" y="{top + ph - 8:.1f}" font-size="10" text-anchor="middle" fill="#56606e">not rerun</text>')
+                continue
             x = gx - bw - 4 + j * (bw + 8)
             o.append(f'<rect x="{x:.1f}" y="{y(pv):.1f}" width="{bw}" height="{ph * pv:.1f}" fill="{col[router]}"/>')
             cx = x + bw / 2

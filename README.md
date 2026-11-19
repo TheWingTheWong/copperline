@@ -84,56 +84,51 @@ The frozen run above is the held-out result. The post-freeze fixes (PTH pads on 
 The slowest completed held-out copperline run took 1774 s; the frozen build ran into the bench's 1800 s cap on 0672_DAC-ADAU1966_DAC-ADAU1966, because its time budget was only checked between negotiation passes (it is a deadline since; see Limitations).
 <!-- results:end -->
 
-**Setup.** Every board in these tables is a real open-hardware design from [PCBench](https://github.com/PCBench/PCBench),
-prepared with [PCBWorld](https://github.com/LGAI-Research/PCBWorld)'s own pipeline (the D3 benchmark):
+**Setup.** Every board in these tables is a real open-hardware design from
+[PCBench](https://github.com/PCBench/PCBench), prepared with
+[PCBWorld](https://github.com/LGAI-Research/PCBWorld)'s own pipeline (the D3 benchmark):
 the original routing is stripped, each net keeps the width its designer used, and the
-project's design rules come along in the `.kicad_pro`. Both routers get the same input files.
-A board counts as **clean** only when KiCad 9's own DRC (`kicad-cli pcb drc`, error
-severity) reports zero unconnected items and zero violations on the routed file. That is
-PCBWorld's clean-pass definition. Freerouting 2.1.0 is run the way PCBWorld runs it
-(`-mp 10`, headless, 1800 s cap), through KiCad's own DSN export and SES import.
+project's design rules come along in the `.kicad_pro`. Both routers get the same files. A
+board is **clean** when KiCad 9's DRC (`kicad-cli pcb drc`, error severity) reports zero
+unconnected items and zero violations: PCBWorld's clean-pass. Freerouting 2.1.0 runs as
+PCBWorld runs it (`-mp 10`, headless, default seed) through KiCad's DSN export and SES
+import, with a 600 s cap per board. Rates carry Wilson 95% intervals; "both / only" count
+the boards each router got clean.
 
-How to read this. Clean-pass comes with a Wilson 95% interval, then the median and
-90th-percentile route time per board. "Both / only" count the boards each router got clean.
-The main table pairs boards: a board counts only once both routers have a result for it.
+**The two runs.** The head-to-head table is the one to trust. It uses the current build,
+whose stopping point is a deterministic effort budget (A* expansions), so its result for a
+board does not depend on machine load. Freerouting ran one board at a time on an otherwise
+quiet laptop, alongside the copperline run as the only other process. Freerouting was not
+rerun on the hard tier, because at up to 10 minutes a board that takes most of a day. The
+earlier run below used the frozen build, whose budget was wall-clock time, with both
+routers and several of their copies sharing a loaded laptop. The load slowed both by large
+factors (board 0602 took the frozen copperline 313 s in that run and 7.6 s on a quieter
+machine). Its times and its hard-tier rates are therefore indicative only, and they are
+kept because that run was the held-out one: it was made once, before any of the fixes
+below.
 
-**Why Freerouting loses boards.** On medium boards it mostly runs out of passes: at
-PCBWorld's setting of `-mp 10` it often stops with a connection or two unrouted. On hard
-boards it mostly runs out of time (the cap, below). Its DRC errors, though, are
-mostly not routing mistakes. Freerouting receives the board through KiCad's Specctra DSN
-export, which carries no copper text and no footprint-level clearance overrides, and
-the SES that comes back has widths rounded to the DSN resolution. `bench/classify.py`
-labels every KiCad error by cause. The "conversion artifacts forgiven" column counts a
-fully connected Freerouting board as clean when all of its errors are of those three kinds.
-That is the fairer comparison of the two routing engines. The plain column is what a user
-of the KiCad-to-Freerouting round trip actually gets. copperline reads the `.kicad_pcb`
-directly, so it sees the text and the overrides. That is a real advantage of the approach,
-but it is not cleverer routing.
+**Why Freerouting loses boards.** On medium boards it mostly stops with a connection or
+two unrouted after PCBWorld's `-mp 10` passes; on hard boards it mostly runs out of time.
+Its DRC errors are mostly not routing mistakes: KiCad's DSN export carries no copper text
+and no footprint-level clearance overrides, and the SES that comes back has widths rounded
+to the DSN resolution. `bench/classify.py` labels every KiCad error by cause, and the
+"conversion artifacts forgiven" column counts a fully connected Freerouting board as clean
+when all its errors are of those kinds. The plain column is what a user of the
+KiCad-Freerouting round trip gets. copperline reads the `.kicad_pcb` directly and sees the
+text and the overrides: an advantage of the approach, not cleverer routing.
 
-**Where copperline fails.** copperline fails by leaving connections out. Before writing,
-it checks its copper with its own exact DRC and drops anything that fails. KiCad flagged
-copperline's copper on two boards, both bugs in that DRC, found by this benchmark and fixed
-after the freeze. On WordClock_v2, a plated through-hole pad lists only F.Cu in its layers,
-which KiCad treats as copper on every layer (commit e597165). On LoRaPP, two new tracks
-0.1493 mm apart fell into different buckets of the DRC's spatial index and were never
-compared. Both fixes have regression tests. The held-out numbers are left exactly as the
-frozen version produced them.
+**Where copperline fails.** It leaves connections out. It checks its copper with its own
+exact DRC before writing and drops whatever fails. KiCad found errors in copperline's
+copper on two boards of the frozen run, both bugs in that DRC, since fixed with tests: a
+plated through-hole pad listing only F.Cu (KiCad treats it as copper on every layer), and
+two tracks 0.1493 mm apart that fell into different buckets of the DRC's spatial index.
 
-**Which build produced what.** The held-out tables come from the frozen build (tag
-`bench-freeze`). Its result CSVs predate the `commit` column, so here is how to check them:
-`target/release` was rebuilt only from commits whose `src/` is identical to the tag
-(`git diff bench-freeze 1de4fa8 -- src` is empty) until the last frozen board was routed,
-and the post-freeze fixes were compiled in a separate target directory until then. The
-"current build" table reruns today's code (with the fixes and the hard deadline) on the
-same sealed boards, on a quiet machine, and every row it writes names its commit. Some of
-its rows say `-dirty`: a documentation edit was uncommitted when that shard started. The
-binary was built at g43cf691, and `src/` is identical in g43cf691 and g7c445d4.
-
-Board 0498 (Spikeling) is dropped for both routers: KiCad 9's `ImportSpecctraSES` rejects
-Freerouting's session file for it, so it cannot be scored for Freerouting through no fault
-of either router.
-
-Per-board results are in [`bench/results/per-board.md`](bench/results/per-board.md).
+**Provenance.** Rows written since the `commit` column was added name the copperline build
+that produced them. The frozen run predates it; `target/release` was built only from
+commits whose `src/` matches `bench-freeze` until that run ended (`git diff bench-freeze
+1de4fa8 -- src` is empty). Board 0498 is dropped for both routers: KiCad 9's
+`ImportSpecctraSES` rejects Freerouting's session file for it. Per-board results are in
+[`bench/results/per-board.md`](bench/results/per-board.md).
 
 Three held-out boards side by side (left copperline, right Freerouting, same input file;
 solid blocks are copper text, drawn as the boxes copperline keeps clear of). On the second
@@ -144,18 +139,14 @@ and third, Freerouting's errors are its tracks crossing copper text it was never
 ![type5: copperline leaves 4 connections; Freerouting connects everything but crosses copper text](assets/compare-0300.png)
 
 Every number in this section is written by `python3 bench/report.py` from the per-board
-CSVs in `bench/results/` (also into `bench/results/summary.md`). Times are the router's own wall time per
-board on an 8 GB Apple M-series laptop, with the two routers running side by side. For
-Freerouting this includes JVM start (about 1 s). DSN export and SES import are not
-counted, and KiCad's DRC is not counted for either router. Both routers ran side by side on
-a loaded machine, so absolute times will differ on yours; the ratio is the useful part.
-Freerouting 2.1.0 was run once per board with its default seed. The cap was PCBWorld's
-1800 s per board until, part way through the hard tier, the data showed Freerouting had
-never returned a clean board after 600 s (0 of 15 runs past that point, and 2 of 15 between
-300 and 600 s). The remaining hard and test boards then ran with a 600 s cap
-(`bench/run.py --cap 600`), which kept the run inside a week on one laptop. Timeouts count
-as failures either way. PCBWorld also reports a best-of-4-seeds
-number, which this run does not attempt.
+CSVs in `bench/results/` (and into `bench/results/summary.md`). Times are each router's
+own wall time per board on an 8 GB Apple M-series laptop; for Freerouting this includes JVM
+start (about 1 s). DSN export, SES import and KiCad's DRC are not counted. The frozen run
+started with PCBWorld's 1800 s cap for Freerouting and moved to 600 s part way through the
+hard tier, once Freerouting had returned no clean board after 600 s in 15 runs; copperline
+kept 1800 s there and went past 600 s on 4 hard boards, none of them clean, so the
+uneven cap changes no result. PCBWorld also reports a best-of-4-seeds Freerouting number,
+which neither run attempts.
 
 ### A note on the benchmark's splits
 
@@ -264,13 +255,13 @@ splits are in `bench/splits.json`.
   held-out failures above come from.
 - copperline reads a `.kicad_pcb` the way KiCad 9 writes it. Older files should be opened
   and saved once in KiCad 9 first.
-- Hard boards can take minutes, because A* floods behind large blocked areas.
-  `--budget` (90 s by default) is a wall-clock deadline: the search stops starting new
-  connections once it is spent, and the cleanup drops nets still in conflict past 1.25x of
-  it, so the output stays legal but may be incomplete. The frozen build used for the
-  held-out run checked the budget only between negotiation passes, which is why one board
-  above ran to the bench's cap. A loaded machine routes less within the same budget.
-- The browser demo runs the same code single-threaded; dense boards take a while there.
+- Hard boards can take minutes, because A* floods behind large blocked areas. `--effort`
+  (in millions of A* expansions, 150 by default, about two minutes on this laptop for the
+  hardest boards) decides where routing stops, so the same input always gives the same
+  output. `--budget` (600 s) is only a wall-clock safety net. A board that runs out of
+  effort is written legal but incomplete, and `copperline` exits with code 2.
+- The browser demo runs the same code in WebAssembly, somewhat slower than native; dense
+  boards take a while there.
 
 ## References
 

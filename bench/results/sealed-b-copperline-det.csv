@@ -3,3 +3,14 @@ board,router,commit,seed,status,clean,unconnected,violations,baseline_violations
 0108_BB-PWR-3608_BB-PWR-3608_revA,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,0.77,0.0,51,3,37.096
 0113_maytal_Maytal,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,3.262,0.0,133,6,494.077
 0119_rotorcontrol_nanomount,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,7.374,0.0,114,6,447.768
+0121_OpenHardwareExG_ActiveElectrode_OpenHardwareExG_ActiveElectrode,copperline,bench-freeze-36-g6f14213,,ok,0,7,0,0,,145.731,0.0,83,1,84.6
+0122_Usb-Serial-Breakout-Cp2102_cp2102,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,4.501,0.0,130,16,127.823
+0123_uext-esp32_UEXT_ESP32,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,2.027,0.0,150,12,254.436
+0127_NeoWall_NeoWall,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,2.595,0.0,112,8,449.18
+0134_continuity-tester_continuity-tester,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,0.945,0.0,90,2,148.228
+0135_tinyFISH_tinyBRUSH,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,0.517,0.0,50,5,37.785
+0138_Solare-BQ24210_Solare-BQ24210,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,0.818,0.0,78,7,92.781
+0142_kitspace_12_24_boost_converter,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,0.787,0.0,128,0,267.006
+0144_ottawa-badges-2016_ottawa-badge-tagger-2016,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,1.027,0.0,127,7,241.36
+0147_LED_port-status_LED_port-status-CA,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,0.113,0.0,74,8,70.302
+0151_BB-PWR-8113_BB-PWR-8113_revA,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,0.209,0.0,75,2,77.302
