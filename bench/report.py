@@ -127,13 +127,16 @@ def main():
         wa, wb = wilson(ka, n), wilson(kb, n)
         kf = sum(forgiven_clean(b[x], "freerouting", art) for x in common)
         wf = wilson(kf, n)
+        # The idle rerun overwrote the medium boards' Freerouting outputs that the error
+        # classification reads, so that cell belongs to the head-to-head table only.
+        fcell = "see head-to-head" if name == "medium, held out" and load("sealed-b", "freerouting-idle") else f"{kf}/{n} = {kf / n:.2f} [{wf[0]:.2f}, {wf[1]:.2f}]"
         verdict = lambda r: "clean" if r["clean"] == "1" else (r["status"] if r["status"] != "ok" else ", ".join(
             filter(None, [f"{r['unconnected']} unconnected" if r["unconnected"] not in ("", "0") else "",
                           f"{r['violation_types']}" if r["violations"] not in ("", "0") else ""])))
         for x in common:
             per_board.append(f"| {name} | {x} | {verdict(a[x])} | {verdict(b[x])} | {a[x]['route_s']} | {b[x]['route_s']} |")
         lines.append(
-            f"| {name} | {n} | {ka}/{n} = {ka / n:.2f} [{wa[0]:.2f}, {wa[1]:.2f}] | {kb}/{n} = {kb / n:.2f} [{wb[0]:.2f}, {wb[1]:.2f}] | {kf}/{n} = {kf / n:.2f} [{wf[0]:.2f}, {wf[1]:.2f}] | "
+            f"| {name} | {n} | {ka}/{n} = {ka / n:.2f} [{wa[0]:.2f}, {wa[1]:.2f}] | {kb}/{n} = {kb / n:.2f} [{wb[0]:.2f}, {wb[1]:.2f}] | {fcell} | "
             f"{statistics.median(ta):.1f} / {q(ta, 0.9):.1f} | {capfmt(statistics.median(tb))} / {capfmt(q(tb, 0.9))} | {both} | {ka - both} | {kb - both} |")
         chart.append((name, n, ka / n, wa, kb / n, wb, statistics.median(ta), statistics.median(tb)))
         tier_stats[name] = dict(n=n, ka=ka, kb=kb, kf=kf, ma=statistics.median(ta), mb=statistics.median(tb))
@@ -205,7 +208,13 @@ def main():
                     f"{kf}/{n} = {kf / n:.2f} [{wf[0]:.2f}, {wf[1]:.2f}] | {statistics.median(ta):.1f} / {q(ta, 0.9):.1f} | "
                     f"{capfmt(statistics.median(tb))} / {capfmt(q(tb, 0.9))} | {both} | {ka - both} | {kb - both} |")
         idle["medium"] = dict(n=n, ka=ka, kb=kb, kf=kf, ma=statistics.median(ta), mb=statistics.median(tb), wa=wa, wb=wb)
-    h = {k: v for k, v in load("sealed-c", "copperline-det").items() if k not in EXCLUDE}
+    h1 = {k: v for k, v in load("sealed-c", "copperline-det").items() if k not in EXCLUDE}
+    h2 = {k: v for k, v in load("sealed-c", "copperline-det2").items() if k not in EXCLUDE}
+    h = h2 or h1
+    # Reproducibility: the deterministic build routed sealed-c twice (two builds whose
+    # routing code is identical, run with different machine load); compare board by board.
+    same = [x for x in set(h1) & set(h2) if (h1[x]["clean"], h1[x]["unconnected"], h1[x]["tracks"], h1[x]["vias"]) == (h2[x]["clean"], h2[x]["unconnected"], h2[x]["tracks"], h2[x]["vias"])]
+    repro = f"Run twice, the hard-tier result was identical (clean, unconnected, track and via counts) on {len(same)} of {len(set(h1) & set(h2))} boards." if h1 and h2 else ""
     if h:
         k = sum(int(r["clean"]) for r in h.values())
         t = sorted(float(r["route_s"] or 0) for r in h.values())
@@ -213,7 +222,7 @@ def main():
         builds = sorted({r.get("commit", "") for r in list(a.values()) + list(h.values())})
         lead += ["", "| copperline alone | boards | clean | median / p90 / max s |", "|---|---:|---:|---:|",
                  f"| hard, held out | {len(h)} | {k}/{len(h)} = {k / len(h):.2f} [{w[0]:.2f}, {w[1]:.2f}] | {statistics.median(t):.1f} / {t[int(0.9 * len(t))]:.1f} / {t[-1]:.0f} |",
-                 "", f"copperline build for these rows: {', '.join(builds)}, default effort budget."]
+                 "", f"copperline build for these rows: {', '.join(builds)}, default effort budget. {repro}"]
         idle["hard"] = dict(n=len(h), k=k, m=statistics.median(t), w=w)
     lines[4:4] = lead + ["", "## Earlier run: frozen build, both routers sharing a loaded laptop", ""]
     cur = idle
