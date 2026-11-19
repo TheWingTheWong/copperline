@@ -121,6 +121,9 @@ fn run(args: &[String]) -> Result<(), String> {
             let out = args.iter().position(|a| a == "-o").and_then(|i| args.get(i + 1)).ok_or(USAGE)?;
             let width = args.iter().position(|a| a == "--width").and_then(|i| args.get(i + 1)).and_then(|v| v.parse().ok()).unwrap_or(900);
             let (b, _, _) = load(input)?;
+            if !out.ends_with(".ppm") {
+                return Err("render writes binary PPM; give the output a .ppm name (convert with ffmpeg or any image tool)".into());
+            }
             let img = copperline::raster::frame(&b, &[], &[], &[], width);
             std::fs::write(out, img.ppm()).map_err(|e| e.to_string())?;
             Ok(())

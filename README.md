@@ -41,6 +41,10 @@ pitch 0.087 mm, 42 nets, 62/62 connections, 18 iterations, 544 tracks, 54 vias, 
 `scripts/check_examples.sh` routes both bundled boards and scores them with `kicad-cli`
 (both come back with zero violations and zero unconnected items).
 
+The browser demo in `web/` is static; rebuild its module with
+`cargo build --release --lib --target wasm32-unknown-unknown && cp target/wasm32-unknown-unknown/release/copperline.wasm web/`
+(CI builds the same target on every push).
+
 Other commands: `copperline info` (what the parser saw), `copperline svg` and
 `copperline render` (pictures of a board), `--frames DIR` on `route` (one image per
 routing step; `scripts/animate.sh` turns them into the GIF above).
