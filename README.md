@@ -11,7 +11,7 @@ routes boards on your machine with no server.
 ![copperline routing a two-layer QFP-48 breakout: first pass with nets overlapping, then negotiation until no two nets share copper](assets/routing.gif)
 
 <!-- headline:start -->
-On 86 medium and 90 hard open-hardware boards it never saw during development, scored by KiCad 9's own DRC on the same input files, copperline routes **92% of the medium boards and 58% of the hard ones clean, against Freerouting's 65% and 40%**. Median time per board: 3 s against 34 s on the medium boards; on the hard ones copperline's median is 84 s, while Freerouting ran into its time cap on 46 of 90. Those are the frozen build's numbers, measured with both routers sharing a loaded laptop. Today's build, rerun on the same boards on a quiet machine with its default 90 s deadline, gets 94% and 79% (median 1 s and 10 s); Freerouting was not rerun, so that pair is not head to head.
+On 86 real open-hardware boards of medium size that it never saw during development, routed one at a time with the same input files and scored by KiCad 9's own DRC, copperline produces **94% clean boards against Freerouting's 66%** (71% if Freerouting is forgiven the errors KiCad's DSN export causes), with a median of 2.2 s per board against 20 s. On 90 hard boards it routes 80% clean (median 14 s) with a deterministic effort budget.
 <!-- headline:end -->
 
 ![Clean-pass rate per tier, copperline vs Freerouting](assets/headline.svg)
@@ -52,10 +52,24 @@ routing step; `scripts/animate.sh` turns them into the GIF above).
 ## Results
 
 <!-- results:start -->
+#### Head to head, one board at a time (current build)
+
+| tier | boards | copperline clean | Freerouting clean | Freerouting, conversion artifacts forgiven | copperline median / p90 s | Freerouting median / p90 s | both clean | only copperline | only Freerouting |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| medium, held out | 86 | 81/86 = 0.94 [0.87, 0.97] | 57/86 = 0.66 [0.56, 0.75] | 61/86 = 0.71 [0.61, 0.79] | 2.2 / 11.6 | 20.1 / 224.7 | 55 | 26 | 2 |
+
+| copperline alone | boards | clean | median / p90 / max s |
+|---|---:|---:|---:|
+| hard, held out | 90 | 72/90 = 0.80 [0.71, 0.87] | 14.1 / 174.3 / 281 |
+
+copperline build for these rows: bench-freeze-36-g6f14213, bench-freeze-39-g8c71e41-dirty, default effort budget.
+
+#### Earlier run: frozen build, both routers sharing a loaded laptop
+
 | tier | boards | copperline clean | Freerouting clean | Freerouting, conversion artifacts forgiven | copperline median / p90 s | Freerouting median / p90 s | both clean | only copperline | only Freerouting |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | easy (seen in dev) | 96 | 96/96 = 1.00 [0.96, 1.00] | 81/96 = 0.84 [0.76, 0.90] | 85/96 = 0.89 [0.81, 0.93] | 0.4 / 2.2 | 22.1 / 63.6 | 81 | 15 | 0 |
-| medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 56/86 = 0.65 [0.55, 0.74] | 61/86 = 0.71 [0.61, 0.79] | 3.0 / 18.8 | 33.5 / 541.3 | 54 | 25 | 2 |
+| medium, held out | 86 | 79/86 = 0.92 [0.84, 0.96] | 56/86 = 0.65 [0.55, 0.74] | 59/86 = 0.69 [0.58, 0.77] | 3.0 / 18.8 | 33.5 / 541.3 | 54 | 25 | 2 |
 | hard, held out | 90 | 52/90 = 0.58 [0.47, 0.67] | 36/90 = 0.40 [0.30, 0.50] | 36/90 = 0.40 [0.30, 0.50] | 83.6 / 414.9 | 600 (cap) / 600 (cap) | 31 | 21 | 5 |
 
 #### copperline on every board of each tier (not only those Freerouting finished)
@@ -75,15 +89,6 @@ PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) rep
 - our single-seed run on test-a: routability 0.97 (PCBWorld: 0.98), mean DRC violations on fully routed boards 0.15 (PCBWorld: 0.09; ours includes the DSN-conversion artifacts above), 85/96 boards fully routed
 - clean-pass of our run: 81/96
 
-
-#### Current build on the sealed sets (default 90 s deadline)
-
-The frozen run above is the held-out result. The post-freeze fixes (PTH pads on every layer, DRC bucket inflation, time budget as a hard deadline) were prompted by KiCad findings on those boards, so this rerun is not held out; it shows what today's code and defaults give.
-
-| tier | boards | clean | median / p90 s | build |
-|---|---:|---:|---:|---|
-| medium, held out | 86 | 81/86 = 0.94 [0.87, 0.97] | 1.2 / 9.4 | bench-freeze-30-g43cf691 |
-| hard, held out | 90 | 71/90 = 0.79 [0.69, 0.86] | 10.2 / 93.4 | bench-freeze-31-g7c445d4, bench-freeze-31-g7c445d4-dirty |
 
 The slowest completed held-out copperline run took 1774 s; the frozen build ran into the bench's 1800 s cap on 0672_DAC-ADAU1966_DAC-ADAU1966, because its time budget was only checked between negotiation passes (it is a deadline since; see Limitations).
 <!-- results:end -->

@@ -42,7 +42,16 @@ COPPERLINE = os.environ.get("COPPERLINE", str(ROOT / "target/release/copperline"
 D3_ROOT = Path(os.environ.get("D3_ROOT", str(ROOT.parent.parent / "research/d3work/pcbench_work/newdrc")))
 WORK = HERE / "work"
 # Build provenance for copperline rows (the binary must be built from this checkout).
-COMMIT = subprocess.run(["git", "describe", "--always", "--dirty", "--tags"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+def _binary_build():
+    """The commit the copperline binary was built from (embedded by build.rs)."""
+    try:
+        out = subprocess.run([COPPERLINE, "--version"], capture_output=True, text=True, timeout=30).stdout.strip()
+        return out.split("(")[-1].rstrip(")") if "(" in out else "unknown"
+    except OSError:
+        return "unknown"
+
+
+COMMIT = _binary_build()
 RESULTS = HERE / "results"
 CAP_S = 1800
 

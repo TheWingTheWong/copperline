@@ -31,6 +31,10 @@ fn load(path: &Path) -> Result<(Board, Rules, String), String> {
 
 fn run(args: &[String]) -> Result<(), String> {
     match args.first().map(|s| s.as_str()) {
+        Some("--version") => {
+            println!("copperline {} ({})", env!("CARGO_PKG_VERSION"), env!("COPPERLINE_BUILD"));
+            Ok(())
+        }
         Some("info") => {
             let (b, r, _) = load(Path::new(args.get(1).ok_or(USAGE)?))?;
             let nets = b.net_pads();
