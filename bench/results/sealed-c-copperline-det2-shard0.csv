@@ -24,3 +24,23 @@ board,router,commit,seed,status,clean,unconnected,violations,baseline_violations
 0515_esp8266_32x32panel_esp_12_f_595_ORDERED,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,10.093,0.0,801,74,1435.331
 0524_Baofeng-Interface_BaofengInterfaceIsolated,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,4.102,0.0,531,1,585.258
 0529_kitspace_flypi,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,35.292,0.0,556,67,1994.799
+0533_headstage-adapter_headstage adapter,copperline,bench-freeze-40-ge998a5f,,ok,0,10,0,0,,134.648,0.0,727,103,1505.651
+0537_rodi-pcb_rodi-pcb,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,5.582,0.0,510,28,732.354
+0540_CPU-Power-Supply-Mod_CPU_Power_Supply_Mod,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,8.397,0.0,562,7,1861.149
+0548_kitspace_training_board_v02,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,11.838,0.0,525,10,1284.343
+0556_UniversalBoard4Nucleo_Nucleo_Universal_Board,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,40.231,0.0,970,47,1554.928
+0562_MAVRIC_Hardware__autosave-Motherboard,copperline,bench-freeze-40-ge998a5f,,ok,0,1,0,0,,164.805,0.0,704,49,1862.944
+0567_kitspace_T32_ref,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,11.495,0.0,919,97,1667.649
+0580_nodemcu-basecamp_NodeMCU Basecamp,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,6.83,0.0,718,33,1069.107
+0590_Mechaduino-DR_Mechaduino DR 1.01,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,43.001,0.0,856,100,1007.216
+0595_LoRaPP_loramod,copperline,bench-freeze-40-ge998a5f,,ok,0,9,0,0,,95.115,0.0,477,41,433.717
+0599_RGBMatrixPanelCPLD-PhotonBackpack_RGBMatrixPanel_CPLD,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,71.95,0.0,710,60,1445.296
+0603_f.60_keyboard,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,8.309,0.0,804,15,3766.518
+0606_elec_power_dispatch,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,37.285,0.0,722,54,1048.007
+0613_Teensy-3.5-Breakout-Boaard_TeensyMegaIoShield,copperline,bench-freeze-40-ge998a5f,,ok,0,20,0,0,,132.17,0.0,1212,67,2849.338
+0617_divergence_meter_dm_nixiebrd,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,33.133,0.0,1213,78,3836.647
+0627_divergence_meter_dm_control,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,26.197,0.0,894,60,1451.709
+0629_Hardware_Playground_BL_PCB_latest,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,22.076,0.0,754,19,1522.3
+0648_zx-sizif-128_sizif128,copperline,bench-freeze-40-ge998a5f,,ok,0,92,0,0,,140.455,0.0,2160,186,5631.264
+0657_mppt-2420-hpx_mppt-2420-hpx,copperline,bench-freeze-40-ge998a5f,,ok,0,131,0,0,,188.797,0.0,1019,68,1815.298
+0666_kitspace_d20_tri_r0.3,copperline,bench-freeze-40-ge998a5f,,ok,0,312,0,0,,145.6,0.0,1740,100,1182.586

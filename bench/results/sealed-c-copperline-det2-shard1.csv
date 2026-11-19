@@ -21,3 +21,27 @@ board,router,commit,seed,status,clean,unconnected,violations,baseline_violations
 0498_kitspace_Spikeling_V2.1,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,10.264,0.0,710,22,2376.138
 0507_Dekada_dekada_TopoR_curves,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,0.804,0.0,229,0,235.639
 0512_Protoboard-DIP-for-CHIP_chip-dip-protoboard,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,93.334,0.0,516,1,536.256
+0516_MicroMaple_MicroMaple,copperline,bench-freeze-40-ge998a5f,,ok,0,9,0,0,,132.826,0.0,714,80,1082.475
+0525_pcb-covox-amp-v2_pcb-covox-amp-v2,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,7.2,0.0,518,38,1233.593
+0530_RC2014_RC2014 Tandy Sound Card,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,22.745,0.0,815,43,2243.176
+0535_anima_MotorDrive,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,10.38,0.0,576,51,1173.851
+0538_tdstat_TDstatv2,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,7.967,0.0,640,43,1467.323
+0543_solar-lora_solar-lora,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,127.891,0.0,775,87,1280.4
+0552_wavegen_wavegen-alt,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,20.417,0.0,625,49,968.297
+0559_Biscay_Blueeye_sipm-fpga,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,9.704,0.0,666,35,1219.045
+0563_OpAmpPassXsistorBenchSupply_OpAmpPassXsistorBenchSupply,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,7.222,0.0,623,11,1343.589
+0566_TinyTracker_ub-minimal,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,7.602,0.0,499,39,396.451
+0577_Shift-out-32-HC595_Shift-out,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,20.547,0.0,591,48,1126.183
+0588_DSKY-alarm-panel-replica_DSKY_alarm,copperline,bench-freeze-40-ge998a5f,,ok,0,2,0,0,,140.832,0.0,1098,89,2026.855
+0593_vhf-radio_exp-1,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,24.5,0.0,499,39,768.674
+0598_PDB_OSD_HARDWARE_Quadcopter Power Board,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,42.148,0.0,512,37,491.146
+0602_PoEPi-hardware__autosave-pizero-poe,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,9.754,0.0,800,74,950.953
+0605_recalbox-gpio-board_board,copperline,bench-freeze-40-ge998a5f,,ok,0,5,0,0,,165.664,0.0,882,35,3251.033
+0612_balena-rover-wide-hat_resin-rover,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,24.489,0.0,837,80,1433.508
+0616_MixSID_mixsid,copperline,bench-freeze-40-ge998a5f,,ok,0,7,0,0,,134.078,0.0,1385,53,2245.599
+0624_elbsupply_elbsupply,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,36.235,0.0,936,95,2070.998
+0628_digital_clock_led_clock_3_and_4_digit,copperline,bench-freeze-40-ge998a5f,,ok,1,0,0,0,,51.539,0.0,1011,50,4117.074
+0639_pwm-2420-lus_pwm-2420-lus,copperline,bench-freeze-40-ge998a5f,,ok,0,14,0,0,,144.06,0.0,1083,95,2201.842
+0655_ADC-PCM4202-SE_ADC-PCM4202-SE,copperline,bench-freeze-40-ge998a5f,,ok,0,291,0,0,,189.974,0.0,329,20,498.196
+0658_sweet-sixteen_sweet-sixteen,copperline,bench-freeze-40-ge998a5f,,ok,0,1,0,0,,156.586,0.0,1730,192,4388.326
+0672_DAC-ADAU1966_DAC-ADAU1966,copperline,bench-freeze-40-ge998a5f,,ok,0,400,0,0,,280.26,0.0,438,37,558.002
