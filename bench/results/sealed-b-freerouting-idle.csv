@@ -27,3 +27,8 @@ board,router,commit,seed,status,clean,unconnected,violations,baseline_violations
 0191_deskbot_breakout,freerouting,freerouting-2.1.0,,ok,1,0,0,0,,18.915,4.814,107,0,334.554
 0192_CubeSAT-Reaction-Wheel__autosave-GPIO to motor,freerouting,freerouting-2.1.0,,ok,1,0,0,0,,34.028,5.39,157,3,662.995
 0194_kitspace_postcard,freerouting,freerouting-2.1.0,,ok,1,0,0,0,,27.543,5.98,133,4,567.906
+0196_kitspace_level_shifter,freerouting,freerouting-2.1.0,,ok,1,0,0,0,,14.172,4.44,127,0,463.82
+0200_rufs_spv1040_power_controller,freerouting,freerouting-2.1.0,,ok,0,1,0,0,,20.176,3.865,127,0,262.979
+0201_hardware-designs_nixie-power,freerouting,freerouting-2.1.0,,ok,1,0,0,0,,14.437,4.338,127,1,494.293
+0207_cap-soil-moisture-v2_soil-moisture2x4,freerouting,freerouting-2.1.0,,ok,1,0,0,0,,15.511,4.316,91,0,325.353
+0213_kika-in-space_DS8500,freerouting,freerouting-2.1.0,,ok,1,0,0,0,,18.183,4.823,148,3,260.804

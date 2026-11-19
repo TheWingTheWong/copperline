@@ -220,3 +220,17 @@ fn drc_hole_and_edge_clearance() {
     assert!(!drc::check(&obs, &edge(0.35), &[]).is_empty());
     assert!(drc::check(&obs, &edge(0.45), &[]).is_empty());
 }
+
+#[test]
+fn routing_is_deterministic() {
+    // The effort budget, not the clock, decides where routing stops.
+    use copperline::router::route_board;
+    let text = random_board(5);
+    let b = Board::parse(&text).unwrap();
+    let r = rules(0.2, 0.25);
+    let p = Params { effort: 300_000, ..Params::default() };
+    let a = route_board(&b, &r, &p);
+    let c = route_board(&b, &r, &p);
+    assert_eq!(a.stats.work, c.stats.work);
+    assert_eq!(copperline::write::block(&b, &a.tracks, &a.vias, 1), copperline::write::block(&b, &c.tracks, &c.vias, 1));
+}

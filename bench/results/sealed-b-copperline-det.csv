@@ -1,0 +1,5 @@
+board,router,commit,seed,status,clean,unconnected,violations,baseline_violations,violation_types,route_s,convert_s,tracks,vias,length_mm
+0106_IR-Transponder-ATTiny85-v2_Transponder_v2,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,0.547,0.0,78,2,98.082
+0108_BB-PWR-3608_BB-PWR-3608_revA,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,0.77,0.0,51,3,37.096
+0113_maytal_Maytal,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,3.262,0.0,133,6,494.077
+0119_rotorcontrol_nanomount,copperline,bench-freeze-36-g6f14213,,ok,1,0,0,0,,7.374,0.0,114,6,447.768
