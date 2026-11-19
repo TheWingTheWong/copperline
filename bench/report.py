@@ -313,7 +313,7 @@ def readme_blocks(lines, ts, missed, routed, cur=None):
     rest = max(float(r["route_s"] or 0) for r in held if r["status"] != "timeout")
     extra = (f"\n\nThe slowest completed held-out copperline run took {rest:.0f} s"
              + (f"; the frozen build ran into the bench's 1800 s cap on {', '.join(capped)}, because its time budget was "
-                "only checked between negotiation passes (it is a deadline since; see Limitations)." if capped else "."))
+                "only checked between negotiation passes (the current build stops on a deterministic effort budget instead; see Limitations)." if capped else "."))
     if len(hard_all) != h["n"]:
         extra += (f" Hard tier, all {len(hard_all)} boards copperline routed (including those Freerouting has no result for): "
                   f"{hk}/{len(hard_all)} = {hk / len(hard_all):.2f} clean.")

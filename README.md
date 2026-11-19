@@ -90,7 +90,7 @@ PCBWorld (RQ2 table, d3a fair-95 subset, Freerouting 2.1.0, mean of 4 seeds) rep
 - clean-pass of our run: 81/96
 
 
-The slowest completed held-out copperline run took 1774 s; the frozen build ran into the bench's 1800 s cap on 0672_DAC-ADAU1966_DAC-ADAU1966, because its time budget was only checked between negotiation passes (it is a deadline since; see Limitations).
+The slowest completed held-out copperline run took 1774 s; the frozen build ran into the bench's 1800 s cap on 0672_DAC-ADAU1966_DAC-ADAU1966, because its time budget was only checked between negotiation passes (the current build stops on a deterministic effort budget instead; see Limitations).
 <!-- results:end -->
 
 **Setup.** Every board in these tables is a real open-hardware design from
